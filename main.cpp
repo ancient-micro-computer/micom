@@ -23,35 +23,16 @@ Thread^		m_thGTmr;
 HANDLE		m_hBusMutex;
 HANDLE		m_hGTmrMutex;
 
-void main(void)
-{
-	init();
-}
-
-void deinit() {
-	if (components)
-	{
-		delete components;
-	}
-	delete [] m_Mem;
-	delete m_Cpu;
-	delete m_Bus;
-	delete m_GTmr;
-
-	// スレッド強制停止
-	m_thGTmr->Abort();
-	while(true) {
-		m_thGTmr->Join();
-		break;
-	}
-
-	m_thBus->Abort();
-	while(true) {
-		m_thBus->Join();
-		break;
-	}
-}
-
+/*
+動かし方
+init();
+↓
+start();
+↓
+stop();
+↓
+deinit();
+*/
 
 void init() {
 	// 継承フォーム側で override して、フォーム初期化時のコードを作成する
@@ -80,30 +61,48 @@ void init() {
 	m_hBusMutex = CreateMutex (NULL, FALSE, NULL);
 	m_hGTmrMutex = CreateMutex (NULL, FALSE, NULL);
 
-	m_thBus = gcnew Thread(gcnew ThreadStart( this, &FormMain::Run1Cycle ));
+	m_thBus = gcnew Thread(gcnew ThreadStart( this, &Run1Cycle ));
 	m_thBus->IsBackground = true;	// バックグラウンド化してから起動
 	m_thBus->Start();
 
-	m_thGTmr = gcnew Thread(gcnew ThreadStart( this, &FormMain::RunGTimer ));
+	m_thGTmr = gcnew Thread(gcnew ThreadStart( this, &RunGTimer ));
 	m_thGTmr->IsBackground = true;	// バックグラウンド化してから起動
 	m_thGTmr->Start();
 
 	// 初回リセット
 	m_Bus->Reset();
 
-	// メニュー初期化
-	スタートToolStripMenuItem->Enabled = true;
-	ストップToolStripMenuItem->Enabled = false;
-
-	// サブフォーム初期化
-	frmMemory = nullptr;
-	frmPeripheral = nullptr;
-
 	return D_FORMBASE_OK;
 }
 
+void deinit() {
+	if (components)
+	{
+		delete components;
+	}
+	delete [] m_Mem;
+	delete m_Cpu;
+	delete m_Bus;
+	delete m_GTmr;
+
+	// スレッド強制停止
+	m_thGTmr->Abort();
+	while(true) {
+		m_thGTmr->Join();
+		break;
+	}
+
+	m_thBus->Abort();
+	while(true) {
+		m_thBus->Join();
+		break;
+	}
+}
+
+
 // リセット処理
 int reset() {
+	SetRunning(false);
 	 m_Bus->lock();
 	 m_Bus->Reset();
 	 m_Bus->unlock();
@@ -112,37 +111,23 @@ int reset() {
 	 return D_OK;
 }
 
+// 実行開始
+void start() {
+	SetRunning(true);
+}
+
+‥実行停止
+void stop() {
+	SetRunning(false);
+}
+
 // 実行/停止設定
 void SetRunning(bool running) {
 	 WaitForSingleObject( m_hBusMutex, INFINITE );
 
 	 m_Running = running;
 
-	 // メニュー & ボタンUIの制御
-	 cmdStop->Enabled = m_Running;
-	 ストップToolStripMenuItem->Enabled = m_Running;
-
-	 cmdFastRun->Enabled = !m_Running;
-	 スタートToolStripMenuItem->Enabled = !m_Running;
-
-	 cmdStep->Enabled = !m_Running;
-	 ステップToolStripMenuItem->Enabled = !m_Running;
-
 	 ReleaseMutex(m_hBusMutex);
-}
-
-// CPU情報の更新
-System::Void RefreshCpuInfo(bool trace_current_pc) {
-	 if(GetChild(D_FORMNAME_MEMORY) != nullptr) {
-		 frmMemory->proc(0, (trace_current_pc ? D_FORMBASE_TRUE : D_FORMBASE_FALSE), 0, 0);
-	 }
-}
-
-// 仮想I/Oの更新
-System::Void RefreshIO() {
-	 if(GetChild(D_FORMNAME_PERIPHERAL) != nullptr) {
-		 frmPeripheral->proc(2, 0, 0, 0);
-	 }
 }
 
 //バス駆動
@@ -163,8 +148,8 @@ void Run1Cycle() {
 
 		 // HALT or BreakPoint検出→Cycle実行停止
 		 if(m_Bus->GetStatus(0) != 0 || m_bp->Check(pc)) {
-			 BeginInvoke(gcnew SetRunningDelegate(this, &FormMain::SetRunning), false);
-			 BeginInvoke(gcnew RefreshCpuInfoDelegate(this, &FormMain::RefreshCpuInfo), true);
+			 SetRunning(false);
+			 continue;
 		 }
 
 		 // 1cycle 実行
@@ -211,8 +196,6 @@ void RunGTimer() {
 
 // データロード
 int LoadFromFile(char* filename) {
-	// char*→String^ ＝ System::Runtime::InteropServices::Marshal::PtrToStringAnsi((IntPtr)str)
-	// 
 	char buf[1024];
 	char *nexttok;
 	char *p;
