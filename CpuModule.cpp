@@ -18,7 +18,7 @@ using namespace Simulator;
 
 //変数宣言
 T_ORDER_LIST gCodeParam[] = {
-//オぺレーションコード、実行サイクル、オペランド
+//オぺレーションコード、実行サイクル、オペランド数(fetch回数)
 		{0,  1, 0},
 		{1,  1, 0},
 		{2,  2, 2},
