@@ -1,0 +1,1 @@
+# 酷い作りのvirtual cpu
