@@ -6,4 +6,4 @@ $ make clean
 $ make
 
 # how to run
-$ vcpu <assembled file>
+$ vcpu `<assembled file>`
