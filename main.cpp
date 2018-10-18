@@ -13,6 +13,7 @@
 /* 完全な状態ではありません！ */
 using namespace Simulator;
 
+// global variables
 int mHealthCounter;
 Bus*		m_Bus;
 CpuModule*	m_Cpu;
@@ -24,24 +25,62 @@ bool		m_Halt = false;
 HANDLE		m_hBusMutex;
 HANDLE		m_hGTmrMutex;
 
+// prototypes
 void init();
 void deinit();
+int reset();
+void start();
+void stop();
 void SetRunning(bool running);
 void stopThread(std::thread *thBus, std::thread *thGTmr);
 void Run1Cycle();
 void RunGTimer();
 int LoadFromFile(char* filename);
 
+/*============================================================================*
+ *  関数名
+ *      main関数
+ *  概要
+ *      とにかく実行させる
+ *  パラメタ説明
+ *      
+ *  戻り値
+ *      0：正常　負数：異常
+ *============================================================================*/
 int main(int argc, char** argv) {
+	char	filename[1024];
+	
+	// 初期化
 	init();
+
+	if(argc < 2) {
+		printf("実行するバイナリファイル名を入力してください。 \n");
+		scanf("%s", filename);
+		printf("ファイル名: %s\n", filename);
+	} else {
+		printf("ファイル名: %s\n", argv[1]);
+		strcpy_s(filename, 1024, argv[1]);
+	}
+
+	//ファイルオープン
+	if (LoadFromFile(filename) != D_OK) {
+		printf("読めませんでした\n");
+		return -1;
+	}
 
 	// スレッド開始
 	std::thread m_thBus(Run1Cycle);
 	std::thread m_thGTmr(RunGTimer);
 
-	// start()
+	start();
 
-	// stop()
+	{
+		// 3000msecだけCPUを駆動させるデモ的挙動
+		std::chrono::milliseconds interval_wait( 3000 );
+		std::this_thread::sleep_for( interval_wait );
+	}
+
+	stop();
 
 	// スレッド強制停止
 	stopThread(&m_thBus, &m_thGTmr);
@@ -49,6 +88,7 @@ int main(int argc, char** argv) {
 	deinit();
 	return 0;
 }
+
 
 void init() {
 	printf("init\n");
@@ -75,6 +115,7 @@ void init() {
 	// 初回リセット
 	m_Bus->Reset();
 }
+
 
 void deinit() {
 	printf("deinit\n");
