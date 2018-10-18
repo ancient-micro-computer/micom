@@ -1,10 +1,10 @@
 /******************************************************************************
- *  ƒtƒ@ƒCƒ‹–¼
+ *  ãƒ•ã‚¡ã‚¤ãƒ«å
  *      Timer.cpp
- *  ƒuƒƒbƒN–¼
+ *  ãƒ–ãƒ­ãƒƒã‚¯å
  *      -
- *  ŠT—v
- *      ”Ä—pƒ^ƒCƒ}[ƒNƒ‰ƒX’è‹`
+ *  æ¦‚è¦
+ *      æ±Žç”¨ã‚¿ã‚¤ãƒžãƒ¼ã‚¯ãƒ©ã‚¹å®šç¾©
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 
 using namespace Simulator;
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^FBlockÚ‘±ˆ—‚ªŽÀs‚³‚ê‚éƒ^ƒCƒ~ƒ“ƒO‚ÅƒR[ƒ‹‚³‚ê‚Ü‚·
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ï¼šBlockæŽ¥ç¶šå‡¦ç†ãŒå®Ÿè¡Œã•ã‚Œã‚‹ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ã‚³ãƒ¼ãƒ«ã•ã‚Œã¾ã™
 TimerModule::TimerModule() : Block()
 {
 }
@@ -27,14 +27,14 @@ TimerModule::~TimerModule()
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒŠƒZƒbƒg
- *  ŠT—v
- *      ƒuƒƒbƒNƒŠƒZƒbƒg
- *  ƒpƒ‰ƒƒ^à–¾
- *      ‚È‚µ
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒªã‚»ãƒƒãƒˆ
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯ãƒªã‚»ãƒƒãƒˆ
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜Ž
+ *      ãªã—
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    TimerModule::Reset(TVOID)
 {
@@ -42,14 +42,14 @@ TINT    TimerModule::Reset(TVOID)
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒuƒƒbƒNƒvƒƒpƒeƒB
- *  ŠT—v
- *      ƒuƒƒbƒN‚ÉŠÖ‚·‚éî•ñ‚ð•Ô‚·
- *  ƒpƒ‰ƒƒ^à–¾
- *      ‚È‚µ
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒ–ãƒ­ãƒƒã‚¯ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯ã«é–¢ã™ã‚‹æƒ…å ±ã‚’è¿”ã™
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜Ž
+ *      ãªã—
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    TimerModule::Status(TVOID)                                  
 {
@@ -57,22 +57,22 @@ TINT    TimerModule::Status(TVOID)
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒuƒƒbƒN‹@”\ŽÀs
- *  ŠT—v
- *      ƒuƒƒbƒN‹@”\‚ÉŠÖ‚·‚éŽÀ‘•
- *  ƒpƒ‰ƒƒ^à–¾
- *      cmd         : ƒRƒ}ƒ“ƒhID
- *      addr        : ƒAƒhƒŒƒX
- *      data        : ƒf[ƒ^iVerilogŒ`Ž®‚ÌƒRƒ}ƒ“ƒhŽd—l‚ÉˆË‘¶‚µ‚Ü‚·j
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½å®Ÿè¡Œ
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½ã«é–¢ã™ã‚‹å®Ÿè£…
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜Ž
+ *      cmd         : ã‚³ãƒžãƒ³ãƒ‰ID
+ *      addr        : ã‚¢ãƒ‰ãƒ¬ã‚¹
+ *      data        : ãƒ‡ãƒ¼ã‚¿ï¼ˆVerilogå½¢å¼ã®ã‚³ãƒžãƒ³ãƒ‰ä»•æ§˜ã«ä¾å­˜ã—ã¾ã™ï¼‰
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    TimerModule::Exec(int module_id)
 {
 	TW32U param;
 
-	// CPUƒ‚ƒWƒ…[ƒ‹‚ÉŠ„ž‚Ý’Ê’m
+	// CPUãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã«å‰²è¾¼ã¿é€šçŸ¥
 	param = Interrupt_Timer;
 
 	m_ParentBus->lock();
@@ -82,16 +82,16 @@ TINT    TimerModule::Exec(int module_id)
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒAƒNƒZƒXI/F
- *  ŠT—v
- *      ƒuƒƒbƒN“àƒŠƒ\[ƒX‚Æ‚ÌGet&Set-I/F’è‹`
- *  ƒpƒ‰ƒƒ^à–¾
- *      MemID       : ƒƒ‚ƒŠID
- *      addr        : ƒAƒNƒZƒXƒAƒhƒŒƒX
- *      value       : ‘‚«ž‚Ý’l(SetŽž)
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ã‚¢ã‚¯ã‚»ã‚¹I/F
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯å†…ãƒªã‚½ãƒ¼ã‚¹ã¨ã®Get&Set-I/Få®šç¾©
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜Ž
+ *      MemID       : ãƒ¡ãƒ¢ãƒªID
+ *      addr        : ã‚¢ã‚¯ã‚»ã‚¹ã‚¢ãƒ‰ãƒ¬ã‚¹
+ *      value       : æ›¸ãè¾¼ã¿å€¤(Setæ™‚)
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT   TimerModule::GetReg(TINT addr, TW32U &value)
 {
@@ -115,7 +115,7 @@ TINT    TimerModule::SetMem(TW32U addr, TW32U value)
 
 TW32U*	TimerModule::MemPtr(TW32U addr)
 {
-	return NULL;	// Null¨ƒ|ƒCƒ“ƒ^•Ï”–¼‚É•ÏX‚µ‚Ä‰º‚³‚¢
+	return NULL;	// Nullâ†’ãƒã‚¤ãƒ³ã‚¿å¤‰æ•°åã«å¤‰æ›´ã—ã¦ä¸‹ã•ã„
 }
 
 

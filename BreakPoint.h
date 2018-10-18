@@ -1,7 +1,8 @@
 #pragma once
 
-#include "windows.h"
 #include "typedef.h"
+#include "macro.h"
+#include <mutex>
 
 #define D_MAX_BREAKPOINTS	256
 

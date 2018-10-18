@@ -5,21 +5,21 @@
 #include "logutil.h"
 
 //Note:
-// logutil.c ‚ÅÀ‘•‚µ‚Ä‚¢‚éŠÖ”‹@”\‚ğ–³Œø‚É‚·‚é‚É‚ÍAlogutil.h‚Ì "#define _LOG_ 1" ‚ğƒRƒƒ“ƒg‰»‚µ‚Ä‚­‚¾‚³‚¢B
+// logutil.c ã§å®Ÿè£…ã—ã¦ã„ã‚‹é–¢æ•°æ©Ÿèƒ½ã‚’ç„¡åŠ¹ã«ã™ã‚‹ã«ã¯ã€logutil.hã® "#define _LOG_ 1" ã‚’ã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦ãã ã•ã„ã€‚
 
-// ƒ[ƒJƒ‹ƒƒOŠÖ˜A
+// ãƒ­ãƒ¼ã‚«ãƒ«ãƒ­ã‚°é–¢é€£
 #define         LOGS        512
-static  FILE    *fp[LOGS];      /* Å‘å512ŒÂ•ª‚ÌƒƒOƒtƒ@ƒCƒ‹ƒ|ƒCƒ“ƒ^ŠÇ—”z—ñ */
+static  FILE    *fp[LOGS];      /* æœ€å¤§512å€‹åˆ†ã®ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚¤ãƒ³ã‚¿ç®¡ç†é…åˆ— */
 static  char    logname[LOGS][256];
 static  int     fpidx;
 
 //--------------------------------------------------------------------------------
 //  [brief]         Output log string to file.
-//  [function]  ƒƒOo—ÍŠÖ”
-//  [argument]  log_file    ƒƒOƒtƒ@ƒCƒ‹–¼
-//              format      ƒƒO•¶Œ¾
-//  [return]    1=³íA0=ˆÙíI—¹
-//  [note]      •¶Œ¾’†A‰üs‚Ì\n‚Í•s—v
+//  [function]  ãƒ­ã‚°å‡ºåŠ›é–¢æ•°
+//  [argument]  log_file    ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«å
+//              format      ãƒ­ã‚°æ–‡è¨€
+//  [return]    1=æ­£å¸¸ã€0=ç•°å¸¸çµ‚äº†
+//  [note]      æ–‡è¨€ä¸­ã€æ”¹è¡Œã®\nã¯ä¸è¦
 //--------------------------------------------------------------------------------
 void log_init(void) {
 #if _LOG_
@@ -48,15 +48,15 @@ void log_close(void) {
 #endif
 }
 
-void log(char *log_file, const char *format, ... )
+void log(const char *log_file, const char *format, ... )
 {
 #if _LOG_
     int         i;
     FILE        *f;
     char        buf[1024];
-    va_list     vl;                         /* ‰Â•Ï—v‘fˆø”ƒŠƒXƒg */
+    va_list     vl;                         /* å¯å¤‰è¦ç´ å¼•æ•°ãƒªã‚¹ãƒˆ */
 
-    /* ‰‰ñƒAƒNƒZƒX‚Íƒtƒ@ƒCƒ‹ƒ|ƒCƒ“ƒ^‚ğİ’è */
+    /* åˆå›ã‚¢ã‚¯ã‚»ã‚¹æ™‚ã¯ãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚¤ãƒ³ã‚¿ã‚’è¨­å®š */
     for(f = NULL, i = 0; i < fpidx; i++) {
         if (strcmp(logname[i], log_file)==0) {
             f = fp[i];
@@ -65,18 +65,18 @@ void log(char *log_file, const char *format, ... )
     }
     if (f == NULL) {
         if (fp[fpidx] == NULL && fpidx < LOGS) {
-            if ( (fopen_s(&fp[fpidx], log_file, "w")) != 0) {
+            if ( (fp[fpidx] = fopen(log_file, "w")) != 0) {
                 return;
             }
             strcpy_s(logname[fpidx], 256, log_file);
             f = fp[i];
             fpidx++;
         } else {
-            return;     /* ŠÇ—ƒƒOƒtƒ@ƒCƒ‹”ƒI[ƒo[ */
+            return;     /* ç®¡ç†ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã‚ªãƒ¼ãƒãƒ¼ */
         }
     }
 
-    /* buf ‚ÉƒƒO•¶š—ñ‚ğŠi”[ */
+    /* buf ã«ãƒ­ã‚°æ–‡å­—åˆ—ã‚’æ ¼ç´ */
     va_start( vl, format );
     vsprintf_s( buf, 1024, format, vl );
     va_end( vl );

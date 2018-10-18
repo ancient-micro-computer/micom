@@ -1,17 +1,17 @@
 /*============================================================================*
-					‰¼‘zƒVƒXƒeƒ€ƒRƒ“ƒtƒBƒMƒ…ƒŒ[ƒVƒ‡ƒ“
+					ä»®æƒ³ã‚·ã‚¹ãƒ†ãƒ ã‚³ãƒ³ãƒ•ã‚£ã‚®ãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
 
-@ƒVƒXƒeƒ€‚ÅŽg—p‚·‚éƒ‚ƒWƒ…[ƒ‹‚âŽü•ÓI/O“™‚ÌƒfƒoƒCƒXƒ}ƒbƒsƒ“ƒO‚ð’è‹`‚µ‚Ä‚¢‚Ü‚·B
+ã€€ã‚·ã‚¹ãƒ†ãƒ ã§ä½¿ç”¨ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚„å‘¨è¾ºI/Oç­‰ã®ãƒ‡ãƒã‚¤ã‚¹ãƒžãƒƒãƒ”ãƒ³ã‚°ã‚’å®šç¾©ã—ã¦ã„ã¾ã™ã€‚
 
  *============================================================================*/
 
-// ƒoƒXÚ‘±ƒ‚ƒWƒ…[ƒ‹‚ÌID
+// ãƒã‚¹æŽ¥ç¶šãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ID
 #define D_MODULEID_CPU		0
 #define D_MODULEID_GTMR		1
 #define D_MODULEID_DMA		2
 #define D_MODULEID_MEM		10
 
-// ƒƒ‚ƒŠƒ}ƒbƒv”ÍˆÍ’è‹`
+// ãƒ¡ãƒ¢ãƒªãƒžãƒƒãƒ—ç¯„å›²å®šç¾©
 #define D_ADRMAP_SYSTEM_START	0x0000
 #define D_ADRMAP_SYSTEM_END		0x0FFF
 #define D_ADRMAP_USR_START		0x1000
@@ -19,7 +19,7 @@
 #define D_ADRMAP_STACK_START	0xF000
 #define D_ADRMAP_STACK_END		0xFFFF
 
-// ƒƒ‚ƒŠƒ}ƒbƒvÚ×’è‹`
+// ãƒ¡ãƒ¢ãƒªãƒžãƒƒãƒ—è©³ç´°å®šç¾©
 #define D_SYSTEM_IPL			(D_ADRMAP_SYSTEM_START)
 #define D_SYSTEM_INTVECT		(D_SYSTEM_IPL + 0x10)
 #define D_SYSTEM_GTMR_ENABLE	(D_SYSTEM_INTVECT + 0x8)

@@ -1,15 +1,12 @@
-#include "StdAfx.h"
 #include "BreakPoint.h"
 
 BreakPoint::BreakPoint(void)
 {
-	m_hMutex = CreateMutex(NULL, FALSE, NULL);
 	Clear();
 }
 
 BreakPoint::~BreakPoint(void)
 {
-	CloseHandle(m_hMutex);
 }
 
 void BreakPoint::Set(TW32U addr)
@@ -56,7 +53,7 @@ void BreakPoint::Del(TW32U addr)
 		}
 	}
 	
-	// m_bp_cnt�̍X�V
+	// m_bp_cntの更新
 	i = m_bp_cnt - 1;
 	m_bp_cnt = 0;
 	for(; i >= 0; i--) {

@@ -1,22 +1,22 @@
 /******************************************************************************
- *  ƒtƒ@ƒCƒ‹–¼
+ *  ãƒ•ã‚¡ã‚¤ãƒ«å
  *      cmdif_macro.h
- *  ƒuƒƒbƒN–¼
+ *  ãƒ–ãƒ­ãƒƒã‚¯å
  *      -
- *  ŠT—v
- *      ƒ}ƒNƒ’è‹`
+ *  æ¦‚è¦
+ *      ãƒã‚¯ãƒ­å®šç¾©
  ******************************************************************************/
 #ifndef __MACRO_H__
 #define __MACRO_H__
 
 /*============================================================================*
- * ƒOƒ[ƒoƒ‹ƒ}ƒNƒ
+ * ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒã‚¯ãƒ­
  *============================================================================*/
-// ƒŒƒWƒXƒ^ŠÇ—ƒoƒbƒtƒ@
+// ãƒ¬ã‚¸ã‚¹ã‚¿ç®¡ç†ãƒãƒƒãƒ•ã‚¡
 #define MEM_IF_MAXLISTS         256
 #define MEM_IF_MAXMEMORIESS     256
 
-// ƒ[ƒhEƒn[ƒtƒ[ƒhEƒoƒCƒg’è‹`
+// ãƒ¯ãƒ¼ãƒ‰ãƒ»ãƒãƒ¼ãƒ•ãƒ¯ãƒ¼ãƒ‰ãƒ»ãƒã‚¤ãƒˆå®šç¾©
 #define D_CMDIF_CUI_TXT   0
 #define D_CMDIF_CUI_BIN   1
 #define D_CMDIF_VERILOG     2
@@ -29,13 +29,13 @@
 #define CMDIF_DEFAULT_ENDIAN    CMDIF_ENDIAN_LITTLE
 #endif
 
-// ƒoƒbƒ`
+// ãƒãƒƒãƒ
 #define D_CMDIF_CMD_INVALID -1
 #define D_CMDIF_CMD_CUI   0
 #define D_CMDIF_CMD_VERILOG 1
 
-// ƒRƒ}ƒ“ƒhŒn
-// 1.CUIŒ`®
+// ã‚³ãƒãƒ³ãƒ‰ç³»
+// 1.CUIå½¢å¼
 /*#define D_CMDIF_CMDNOTFOUND -1
 #define D_CMDIF_LOAD        1
 #define D_CMDIF_SAVE        2
@@ -61,18 +61,18 @@
 #define D_CMDIF_HELP        98
 #define D_CMDIF_QUIT        99
 */
-// 2.verilogŒ`®
+// 2.verilogå½¢å¼
 #define D_CMDIF_VL_WRITE    1
 #define D_CMDIF_VL_READ     2
 #define D_CMDIF_VL_NOP      3
-#define D_CMDIF_ACK         30      // ŠÖ”Ack
+#define D_CMDIF_ACK         30      // é–¢æ•°Ack
 #define D_CMDIF_NACK        31      //     Nack
-#define D_CMDIF_MOREDATA	32		// ˆ—Eƒf[ƒ^Œp‘±
-#define D_CMDIF_TIMEOUT     10000   // 10000ƒTƒCƒNƒ‹‘Ò‚Á‚½ê‡‚Íƒ^ƒCƒ€ƒAƒEƒg
+#define D_CMDIF_MOREDATA	32		// å‡¦ç†ãƒ»ãƒ‡ãƒ¼ã‚¿ç¶™ç¶š
+#define D_CMDIF_TIMEOUT     10000   // 10000ã‚µã‚¤ã‚¯ãƒ«å¾…ã£ãŸå ´åˆã¯ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆ
 #define D_CMDIF_VL_QUIT     98
 #define D_CMDIF_EXEC_BREAK  99
 
-// ƒGƒ‰[Œn
+// ã‚¨ãƒ©ãƒ¼ç³»
 #define D_ERR_CMD_COMPLETE      99
 #define D_ERR_OK                0
 #define D_ERR_NAME_FOUND        1
@@ -92,27 +92,34 @@
 #define D_ERR_CANT_ACCESS	    -14
 #define D_ERR_SYSTEM            -99
 
-// ƒGƒ“ƒWƒ“§Œä
+// ã‚¨ãƒ³ã‚¸ãƒ³åˆ¶å¾¡
 #define D_EXEC_OK					30
 #define D_EXEC_HOLD					96
 #define D_EXEC_BREAK				97
 
 /*----------------------------------------------------------------------------*
- * ƒT[ƒrƒXƒ}ƒNƒ’è‹`(‚æ‚©‚Á‚½‚çg‚Á‚Ä‚­‚¾‚³‚¢)
+ * ã‚µãƒ¼ãƒ“ã‚¹ãƒã‚¯ãƒ­å®šç¾©(ã‚ˆã‹ã£ãŸã‚‰ä½¿ã£ã¦ãã ã•ã„)
  *----------------------------------------------------------------------------*/
-/* ƒpƒ‰ƒ[ƒ^æ“¾ : PARAM ‚Ì [MSB:LSB]”ÍˆÍ‚ğØ‚èo‚µ‚½’l‚ğ•Ô‚· */
+/* ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å–å¾— : PARAM ã® [MSB:LSB]ç¯„å›²ã‚’åˆ‡ã‚Šå‡ºã—ãŸå€¤ã‚’è¿”ã™ */
 #define D_GET_PARAM(PARAM, MSB, LSB) ( ((PARAM) >> (LSB)) & ((1 << ((MSB) - (LSB) + 1)) - 1) )
 
-/* CMƒŒƒWƒXƒ^ƒpƒ‰ƒ[ƒ^unpack : CMVAL‚Ì [MSB:LSB]”ÍˆÍ‚ğØ‚èo‚µ‚½’l‚ğ•Ô‚· */
+/* CMãƒ¬ã‚¸ã‚¹ã‚¿ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿unpack : CMVALã® [MSB:LSB]ç¯„å›²ã‚’åˆ‡ã‚Šå‡ºã—ãŸå€¤ã‚’è¿”ã™ */
 #define D_UNPACK_REGPARAM(CMVAL, MSB, LSB) ( ((TW16U)(CMVAL) >> (LSB)) & ((1 << ((MSB) - (LSB) + 1)) - 1) )
 
-/* CMƒŒƒWƒXƒ^ƒpƒ‰ƒ[ƒ^pack : CMVAL‚Ì[MSB:LSB]”ÍˆÍ‚ÉPARAM‚ğ‘ã“ü(Packing)‚µ‚½’l‚ğ CMVAL‚É‘ã“ü‚·‚é */
+/* CMãƒ¬ã‚¸ã‚¹ã‚¿ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿pack : CMVALã®[MSB:LSB]ç¯„å›²ã«PARAMã‚’ä»£å…¥(Packing)ã—ãŸå€¤ã‚’ CMVALã«ä»£å…¥ã™ã‚‹ */
 #define D_PACK_REGPARAM(CMVAL, PARAM, MSB, LSB) CMVAL = ( ((TW16U)(CMVAL) & (~(((1 << ((MSB) - (LSB) + 1)) - 1) << (LSB)))) | (((PARAM) & ((1 << ((MSB) - (LSB) + 1)) - 1))<< (LSB)) )
 
-/* â‘Î’l : CODE ‚Ìâ‘Î’l‚ğ•Ô‚· */
+/* çµ¶å¯¾å€¤ : CODE ã®çµ¶å¯¾å€¤ã‚’è¿”ã™ */
 #define D_ABS( CODE ) ((CODE) < 0 ? -(CODE) : (CODE))
 
-/* MSB/LSB‚ğƒoƒCƒg’PˆÊ‚Å‚Ğ‚Á‚­‚è•Ô‚· */
+/* MSB/LSBã‚’ãƒã‚¤ãƒˆå˜ä½ã§ã²ã£ãã‚Šè¿”ã™ */
 #define D_REV_EDN( v )  (((v) & 0xFF) << 24 | (((v)>>8) & 0xFF) << 16 | (((v)>>16) & 0xFF) << 8 | (((v)>>24) & 0xFF))
+
+/*----------------------------------------------------------------------------*
+ * ç„¡ç†çŸ¢ç† MSç³»ã®ã‚³ãƒ¼ãƒ‰ã‚’é€šã™ãŸã‚ã®å‡¦ç†
+ *----------------------------------------------------------------------------*/
+#define HANDLE std::mutex
+#define WaitForSingleObject(mtx, flag) mtx.lock()
+#define ReleaseMutex(mtx) mtx.unlock()
 
 #endif  /* __MACRO_H__ */

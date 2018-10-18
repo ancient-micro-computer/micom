@@ -13,13 +13,13 @@ public:
 	MemModule();
 	~MemModule();
 
-    TINT    Reset(TVOID);                                   // ƒuƒƒbƒNƒŠƒZƒbƒg
-    TINT    Exec();											// ƒuƒƒbƒN‹@”\‚ÌÀsŠÖ”
-    TINT    Status(TVOID);                                  // ƒuƒƒbƒNƒXƒe[ƒ^ƒXæ“¾
+    TINT    Reset(TVOID);                                   // ãƒ–ãƒ­ãƒƒã‚¯ãƒªã‚»ãƒƒãƒˆ
+    TINT    Exec();											// ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½ã®å®Ÿè¡Œé–¢æ•°
+    TINT    Status(TVOID);                                  // ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å–å¾—
 
-	TINT    GetReg(TINT addr, TW32U &value);						// ƒŒƒWƒXƒ^get/set
+	TINT    GetReg(TINT addr, TW32U &value);						// ãƒ¬ã‚¸ã‚¹ã‚¿get/set
     TINT	SetReg(TINT addr, TW32U value);
-    TINT    GetMem(TW32U addr, TW32U &value, TW32U &valid);// ƒƒ‚ƒŠget/set
+    TINT    GetMem(TW32U addr, TW32U &value, TW32U &valid);// ãƒ¡ãƒ¢ãƒªget/set
     TINT    SetMem(TW32U addr, TW32U value);
 	TW32U*	MemPtr(TW32U addr);
 

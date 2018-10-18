@@ -1,8 +1,8 @@
 /******************************************************************************
- *  ƒtƒ@ƒCƒ‹–¼
+ *  ãƒ•ã‚¡ã‚¤ãƒ«å
  *      Block.h
- *  ŠT—v
- *      ƒuƒƒbƒN‚ÌŠî’êƒNƒ‰ƒX
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯ã®åŸºåº•ã‚¯ãƒ©ã‚¹
  ******************************************************************************/
 
 #ifndef __C_SIM_BLOCK_H__
@@ -15,7 +15,7 @@ namespace Simulator {
 
 class Bus;
 
-public class Block
+class Block
 {
 public:
 	Block();
@@ -23,25 +23,25 @@ public:
 	TVOID SetParentBus(Bus* pBus);
     virtual ~Block();
 
-	// ƒuƒƒbƒN§Œäƒƒ\ƒbƒh
-	virtual	TINT	Reset(TVOID);									// ƒŠƒZƒbƒg
-    virtual TINT    Exec();											// ‹@”\‚ÌÀsŠÖ”
-    virtual TINT    Exec(int module_id);							// “Á’èƒ‚ƒWƒ…[ƒ‹‚ÌÀsŠÖ”
-    virtual TINT    Status(TVOID);                                  // ƒXƒe[ƒ^ƒXæ“¾
+	// ãƒ–ãƒ­ãƒƒã‚¯åˆ¶å¾¡ãƒ¡ã‚½ãƒƒãƒ‰
+	virtual	TINT	Reset(TVOID);									// ãƒªã‚»ãƒƒãƒˆ
+    virtual TINT    Exec();											// æ©Ÿèƒ½ã®å®Ÿè¡Œé–¢æ•°
+    virtual TINT    Exec(int module_id);							// ç‰¹å®šãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®å®Ÿè¡Œé–¢æ•°
+    virtual TINT    Status(TVOID);                                  // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å–å¾—
 
-	// ƒŠƒ\[ƒXI/F’è‹`(ˆÈ‰º‘S‚Äƒˆ‰¼‘zŠÖ”‚Æ‚È‚Á‚Ä‚¢‚é‚Ì‚ÅA”h¶ƒNƒ‰ƒX‚É‚¨‚¢‚Ä•K‚¸À‘Ì‚Ì’è‹`‚ğs‚¤‚±‚Æ)
-    virtual TINT    GetReg(TINT addr, TW32U &value) = 0;							// ƒŒƒWƒXƒ^get/set
+	// ãƒªã‚½ãƒ¼ã‚¹I/Få®šç¾©(ä»¥ä¸‹å…¨ã¦ç´”ç²‹ä»®æƒ³é–¢æ•°ã¨ãªã£ã¦ã„ã‚‹ã®ã§ã€æ´¾ç”Ÿã‚¯ãƒ©ã‚¹ã«ãŠã„ã¦å¿…ãšå®Ÿä½“ã®å®šç¾©ã‚’è¡Œã†ã“ã¨)
+    virtual TINT    GetReg(TINT addr, TW32U &value) = 0;							// ãƒ¬ã‚¸ã‚¹ã‚¿get/set
     virtual TINT	SetReg(TINT addr, TW32U value) = 0;
-    virtual TINT    GetMem(TW32U addr, TW32U &value, TW32U &valid) = 0;	// ƒƒ‚ƒŠget/set
+    virtual TINT    GetMem(TW32U addr, TW32U &value, TW32U &valid) = 0;	// ãƒ¡ãƒ¢ãƒªget/set
     virtual TINT	SetMem(TW32U addr, TW32U value) = 0;
-	virtual	TW32U*	MemPtr(TW32U addr) = 0;								// ƒƒ‚ƒŠƒ|ƒCƒ“ƒ^æ“¾
+	virtual	TW32U*	MemPtr(TW32U addr) = 0;								// ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿å–å¾—
 
-	virtual TINT	Interrupt(int src_module_id, TW32U &param);			// Š„‚İó•t‚¯
+	virtual TINT	Interrupt(int src_module_id, TW32U &param);			// å‰²è¾¼ã¿å—ä»˜ã‘
 
 	inline TINT GetID() { return m_ID; }
 
 protected:
-    TINT    m_Busy;                                                 // ƒrƒW[ƒtƒ‰ƒO
+    TINT    m_Busy;                                                 // ãƒ“ã‚¸ãƒ¼ãƒ•ãƒ©ã‚°
 	TINT	m_ID;
 	Bus*	m_ParentBus;
 };

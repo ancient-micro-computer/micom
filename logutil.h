@@ -5,10 +5,13 @@
 #define _LOGUTIL_H_
 
 //Note:
-// logutil.c ‚ÅÀ‘•‚µ‚Ä‚¢‚éŠÖ”‹@”\‚ğ–³Œø‚É‚·‚é‚É‚ÍA"#define _LOG_ 1" ‚ğƒRƒƒ“ƒg‰»‚µ‚Ä‚­‚¾‚³‚¢B
+// logutil.c ã§å®Ÿè£…ã—ã¦ã„ã‚‹é–¢æ•°æ©Ÿèƒ½ã‚’ç„¡åŠ¹ã«ã™ã‚‹ã«ã¯ã€"#define _LOG_ 1" ã‚’ã‚³ãƒ¡ãƒ³ãƒˆåŒ–ã—ã¦ãã ã•ã„ã€‚
 #define _LOG_ 1
 
-// ƒ[ƒJƒ‹ƒƒOŠÖ˜A
+#define strcpy_s(a, b, c) strcpy(a, c)
+#define vsprintf_s(a,b,c,d) vsprintf(a, c, d)
+
+// ãƒ­ãƒ¼ã‚«ãƒ«ãƒ­ã‚°é–¢é€£
 void log_init(void);
 void log_close(void);
 void log(char *log_file, const char *format, ... );

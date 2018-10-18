@@ -1,5 +1,6 @@
 #include "MemModule.h"
 #include <iostream>
+#include <cstring>
 
 using namespace Simulator;
 using namespace std;
@@ -15,22 +16,22 @@ MemModule::~MemModule(void)
 	delete [] m_cells;
 }
 
-TINT    MemModule::Reset(TVOID)                                   // ƒuƒƒbƒNƒŠƒZƒbƒg
+TINT    MemModule::Reset(TVOID)                                   // ãƒ–ãƒ­ãƒƒã‚¯ãƒªã‚»ãƒƒãƒˆ
 {
 	return 0;
 }
 
-TINT    MemModule::Exec()											// ƒuƒƒbƒN‹@”\‚ÌŽÀsŠÖ”
+TINT    MemModule::Exec()											// ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½ã®å®Ÿè¡Œé–¢æ•°
 {
 	return 0;
 }
 
-TINT    MemModule::Status(TVOID)                                  // ƒuƒƒbƒNƒXƒe[ƒ^ƒXŽæ“¾
+TINT    MemModule::Status(TVOID)                                  // ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å–å¾—
 {
 	return 0;
 }
 
-TINT MemModule::GetReg(TINT addr, TW32U &value)							// ƒŒƒWƒXƒ^get/set
+TINT MemModule::GetReg(TINT addr, TW32U &value)							// ãƒ¬ã‚¸ã‚¹ã‚¿get/set
 {
 	return 0;
 }
@@ -62,7 +63,7 @@ TW32U*	MemModule::MemPtr(TW32U addr)
 {
 	if (addr >= 0 && addr < D_CELL_SIZE)
 	{
-		return m_cells + addr;	// Null¨ƒ|ƒCƒ“ƒ^•Ï”–¼‚É•ÏX‚µ‚Ä‰º‚³‚¢
+		return m_cells + addr;	// Nullâ†’ãƒã‚¤ãƒ³ã‚¿å¤‰æ•°åã«å¤‰æ›´ã—ã¦ä¸‹ã•ã„
 	} else {
 		return NULL;
 	}

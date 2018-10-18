@@ -1,6 +1,6 @@
 #include <iostream>
-#include <vcclr.h>
 #include <vector>
+#include <thread>
 
 #include "Bus.h"
 #include "CpuModule.h"
@@ -10,37 +10,54 @@
 #include "fstream"
 #include "lib.h"
 
-/* Š®‘S‚Èó‘Ô‚Å‚Í‚ ‚è‚Ü‚¹‚ñI */
+/* å®Œå…¨ãªçŠ¶æ…‹ã§ã¯ã‚ã‚Šã¾ã›ã‚“ï¼ */
+using namespace Simulator;
+
 int mHealthCounter;
 Bus*		m_Bus;
 CpuModule*	m_Cpu;
 MemModule*	m_Mem;
 TimerModule*	m_GTmr;
 BreakPoint* m_bp;
-bool		m_Running;
-Thread^		m_thBus;
-Thread^		m_thGTmr;
+bool		m_Running = false;
+bool		m_Halt = false;
 HANDLE		m_hBusMutex;
 HANDLE		m_hGTmrMutex;
 
-/*
-“®‚©‚µ•û
-init();
-«
-start();
-«
-stop();
-«
-deinit();
-*/
+void init();
+void deinit();
+void SetRunning(bool running);
+void stopThread(std::thread *thBus, std::thread *thGTmr);
+void Run1Cycle();
+void RunGTimer();
+int LoadFromFile(char* filename);
+
+int main(int argc, char** argv) {
+	init();
+
+	// ã‚¹ãƒ¬ãƒƒãƒ‰é–‹å§‹
+	std::thread m_thBus(Run1Cycle);
+	std::thread m_thGTmr(RunGTimer);
+
+	// start()
+
+	// stop()
+
+	// ã‚¹ãƒ¬ãƒƒãƒ‰å¼·åˆ¶åœæ­¢
+	stopThread(&m_thBus, &m_thGTmr);
+
+	deinit();
+	return 0;
+}
 
 void init() {
-	// Œp³ƒtƒH[ƒ€‘¤‚Å override ‚µ‚ÄAƒtƒH[ƒ€‰Šú‰»‚ÌƒR[ƒh‚ğì¬‚·‚é
+	printf("init\n");
+	// ç¶™æ‰¿ãƒ•ã‚©ãƒ¼ãƒ å´ã§ override ã—ã¦ã€ãƒ•ã‚©ãƒ¼ãƒ åˆæœŸåŒ–æ™‚ã®ã‚³ãƒ¼ãƒ‰ã‚’ä½œæˆã™ã‚‹
 	mHealthCounter = 0;
 
 	m_bp = new BreakPoint;
 
-	// ƒoƒXÚ‘±ƒRƒ“ƒtƒBƒMƒ…ƒŒ[ƒVƒ‡ƒ“ -------------
+	// ãƒã‚¹æ¥ç¶šã‚³ãƒ³ãƒ•ã‚£ã‚®ãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ -------------
 	m_Bus = new Bus;
 	m_Cpu = new CpuModule;
 	m_GTmr = new TimerModule;
@@ -55,53 +72,22 @@ void init() {
 		addr += 8192;
 	}
 
-	// ƒVƒ~ƒ…ƒŒ[ƒ^ƒXƒŒƒbƒh‰Šú‰»-------------------
-	m_Running = false;
-
-	m_hBusMutex = CreateMutex (NULL, FALSE, NULL);
-	m_hGTmrMutex = CreateMutex (NULL, FALSE, NULL);
-
-	m_thBus = gcnew Thread(gcnew ThreadStart( this, &Run1Cycle ));
-	m_thBus->IsBackground = true;	// ƒoƒbƒNƒOƒ‰ƒEƒ“ƒh‰»‚µ‚Ä‚©‚ç‹N“®
-	m_thBus->Start();
-
-	m_thGTmr = gcnew Thread(gcnew ThreadStart( this, &RunGTimer ));
-	m_thGTmr->IsBackground = true;	// ƒoƒbƒNƒOƒ‰ƒEƒ“ƒh‰»‚µ‚Ä‚©‚ç‹N“®
-	m_thGTmr->Start();
-
-	// ‰‰ñƒŠƒZƒbƒg
+	// åˆå›ãƒªã‚»ãƒƒãƒˆ
 	m_Bus->Reset();
-
-	return D_FORMBASE_OK;
 }
 
 void deinit() {
-	if (components)
-	{
-		delete components;
-	}
+	printf("deinit\n");
 	delete [] m_Mem;
 	delete m_Cpu;
 	delete m_Bus;
 	delete m_GTmr;
-
-	// ƒXƒŒƒbƒh‹­§’â~
-	m_thGTmr->Abort();
-	while(true) {
-		m_thGTmr->Join();
-		break;
-	}
-
-	m_thBus->Abort();
-	while(true) {
-		m_thBus->Join();
-		break;
-	}
 }
 
 
-// ƒŠƒZƒbƒgˆ—
+// ãƒªã‚»ãƒƒãƒˆå‡¦ç†
 int reset() {
+	printf("reset\n");
 	SetRunning(false);
 	 m_Bus->lock();
 	 m_Bus->Reset();
@@ -111,17 +97,35 @@ int reset() {
 	 return D_OK;
 }
 
-// ÀsŠJn
+// å®Ÿè¡Œé–‹å§‹
 void start() {
+	printf("start\n");
 	SetRunning(true);
 }
 
-dÀs’â~
+// å®Ÿè¡Œåœæ­¢
 void stop() {
+	printf("stop\n");
 	SetRunning(false);
 }
 
-// Às/’â~İ’è
+// ã‚¹ãƒ¬ãƒƒãƒ‰åœæ­¢
+void stopThread(std::thread *thBus, std::thread *thGTmr) {
+	printf("stopThread\n");
+	m_Halt = true;
+	
+	while(true) {
+		thGTmr->join();
+		break;
+	}
+
+	while(true) {
+		thBus->join();
+		break;
+	}
+}
+
+// å®Ÿè¡Œ/åœæ­¢è¨­å®š
 void SetRunning(bool running) {
 	 WaitForSingleObject( m_hBusMutex, INFINITE );
 
@@ -130,47 +134,61 @@ void SetRunning(bool running) {
 	 ReleaseMutex(m_hBusMutex);
 }
 
-//ƒoƒX‹ì“®
+//ãƒã‚¹é§†å‹•
 void Run1Cycle() {
 	 bool running;
+	 bool halt;
 	 TW32U	pc;
 
 	 while(true) {
 		 WaitForSingleObject( m_hBusMutex, INFINITE );
 		 running = m_Running;
+		 halt = m_Halt;
 		 ReleaseMutex(m_hBusMutex);
+		 if (halt) {
+			break;
+		 }
+		 
 		 if(!running) {
-			 m_thBus->Sleep(20);
+			 std::chrono::milliseconds interval_wait( 20 );
+			 std::this_thread::sleep_for( interval_wait );
 			 continue;
 		 }
 
 		 m_Bus->get_reg(D_MODULEID_CPU, CpuModule_PC_ADDR, pc);
 
-		 // HALT or BreakPointŒŸo¨CycleÀs’â~
+		 // HALT or BreakPointæ¤œå‡ºâ†’Cycleå®Ÿè¡Œåœæ­¢
 		 if(m_Bus->GetStatus(0) != 0 || m_bp->Check(pc)) {
 			 SetRunning(false);
 			 continue;
 		 }
 
-		 // 1cycle Às
+		 // 1cycle å®Ÿè¡Œ
 		 if(m_Bus->GetStatus(0) == 0) {
 			 m_Bus->Exec();
 		 }
 	 }
 }
 
-//ŠO•”ƒ^ƒCƒ}‹ì“®
+//å¤–éƒ¨ã‚¿ã‚¤ãƒé§†å‹•
 void RunGTimer() {
 	 bool	running;
+	 bool	halt;
 	 TW32U	timer_enable = 0;
 	 TW32U	timer_interval = 0;
 
 	 while(true) {
 		 WaitForSingleObject( m_hBusMutex, INFINITE );
 		 running = m_Running;
+		 halt = m_Halt;
 		 ReleaseMutex(m_hBusMutex);
+		 if (halt) {
+			break;
+		 }
+
 		 if(!running) {
-			 m_thGTmr->Sleep(20);
+			 std::chrono::milliseconds interval_wait( 20 );
+			 std::this_thread::sleep_for( interval_wait );
 			 continue;
 		 }
 		 
@@ -187,17 +205,17 @@ void RunGTimer() {
 			 timer_interval = m_Bus->get_data();
 			 m_Bus->unlock();
 
-			 m_thGTmr->Sleep(timer_interval);		// n msec wait
-			 m_Bus->Exec(D_MODULEID_GTMR);			// ƒ^ƒCƒ}[‹ì“®
+			 std::chrono::milliseconds interval_wait( timer_interval );
+			 std::this_thread::sleep_for( interval_wait ); // n msec wait
+			 m_Bus->Exec(D_MODULEID_GTMR);			// ã‚¿ã‚¤ãƒãƒ¼é§†å‹•
 		 }
 	 }
  }
 
 
-// ƒf[ƒ^ƒ[ƒh
+// ãƒ‡ãƒ¼ã‚¿ãƒ­ãƒ¼ãƒ‰
 int LoadFromFile(char* filename) {
 	char buf[1024];
-	char *nexttok;
 	char *p;
 	TW32U baseaddr = 0, value = 0;
 	int offset = 0;

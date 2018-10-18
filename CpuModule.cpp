@@ -1,13 +1,14 @@
 /*============================================================================*
-@Ú‘±‚·‚éƒuƒƒbƒNi‹@”\ƒGƒ“ƒWƒ“ƒ‚ƒWƒ…[ƒ‹j–ˆ‚ÉA–{ƒ‰ƒbƒp[ŠÖ”‚ğŒÂ•Ê‚É’è‹`‚·‚é
-@‚±‚Æ‚ÅAƒ‚ƒWƒ…[ƒ‹‚Ì‹@”\’è‹`‚ÆUIÚ‘±’è‹`‚ğ•ª—£‚µ‚Ä‚¢‚Ü‚·B
+ã€€æ¥ç¶šã™ã‚‹ãƒ–ãƒ­ãƒƒã‚¯ï¼ˆæ©Ÿèƒ½ã‚¨ãƒ³ã‚¸ãƒ³ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ï¼‰æ¯ã«ã€æœ¬ãƒ©ãƒƒãƒ‘ãƒ¼é–¢æ•°ã‚’å€‹åˆ¥ã«å®šç¾©ã™ã‚‹
+ã€€ã“ã¨ã§ã€ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æ©Ÿèƒ½å®šç¾©ã¨UIæ¥ç¶šå®šç¾©ã‚’åˆ†é›¢ã—ã¦ã„ã¾ã™ã€‚
 
-@‹@”\ƒ‚ƒWƒ…[ƒ‹‘¤‚Å‚àƒŒƒWƒXƒ^‚âƒƒ‚ƒŠ‚Ì“üo—ÍŠÖ”‚ğ’è‹`‚ğ‚µ‚Ä‰º‚³‚¢B
+ã€€æ©Ÿèƒ½ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å´ã§ã‚‚ãƒ¬ã‚¸ã‚¹ã‚¿ã‚„ãƒ¡ãƒ¢ãƒªã®å…¥å‡ºåŠ›é–¢æ•°ã‚’å®šç¾©ã‚’ã—ã¦ä¸‹ã•ã„ã€‚
  
  *============================================================================*/
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <mutex>
 #include "typedef.h"
 #include "simulator.h"
 #include "macro.h"
@@ -16,9 +17,9 @@
 
 using namespace Simulator;
 
-//•Ï”éŒ¾
+//å¤‰æ•°å®£è¨€
 T_ORDER_LIST gCodeParam[] = {
-//ƒI‚ØƒŒ[ƒVƒ‡ƒ“ƒR[ƒhAÀsƒTƒCƒNƒ‹AƒIƒyƒ‰ƒ“ƒh”(fetch‰ñ”)
+//ã‚ªãºãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚³ãƒ¼ãƒ‰ã€å®Ÿè¡Œã‚µã‚¤ã‚¯ãƒ«ã€ã‚ªãƒšãƒ©ãƒ³ãƒ‰æ•°(fetchå›æ•°)
 		{0,  1, 0},
 		{1,  1, 0},
 		{2,  2, 2},
@@ -83,7 +84,7 @@ T_ORDER_LIST gCodeParam[] = {
 		{61, 2, 0}
 };
 
-// Š„‚İî•ñ
+// å‰²è¾¼ã¿æƒ…å ±
 T_INTERRUPT_INFO gInterruptList[] = {
 	{Interrupt_Timer,		CpuModule_BIT0},
 	{Interrupt_Software,	CpuModule_BIT1},
@@ -96,61 +97,59 @@ T_INTERRUPT_INFO gInterruptList[] = {
 	{0, 0}
 };
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^FBlockÚ‘±ˆ—‚ªÀs‚³‚ê‚éƒ^ƒCƒ~ƒ“ƒO‚ÅƒR[ƒ‹‚³‚ê‚Ü‚·
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ï¼šBlockæ¥ç¶šå‡¦ç†ãŒå®Ÿè¡Œã•ã‚Œã‚‹ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ã‚³ãƒ¼ãƒ«ã•ã‚Œã¾ã™
 CpuModule::CpuModule() : Block()
 {
-	//ƒŒƒWƒXƒ^‰Šú‰»
+	//ãƒ¬ã‚¸ã‚¹ã‚¿åˆæœŸåŒ–
 	memset(m_cpu_regs, 0x00, sizeof(TW16U) * 32);
 
-	//–½—ß•¶Ši”[—Ìˆæ‰Šú‰»
+	//å‘½ä»¤æ–‡æ ¼ç´é ˜åŸŸåˆæœŸåŒ–
 	for(int i = 0; i < 4; i++) {
 		m_value_oc[i] = 0;
 	}
-	//ƒTƒCƒNƒ‹’l‚Ì‰Šú‰»
+	//ã‚µã‚¤ã‚¯ãƒ«å€¤ã®åˆæœŸåŒ–
 	m_cycleCount = 0;
 	m_Busy = 0;
 
-	// Š„‚İˆ—ŠÖ˜A‰Šú‰»
+	// å‰²è¾¼ã¿å‡¦ç†é–¢é€£åˆæœŸåŒ–
 	m_InterruptTrap = 0x0;
 	m_InterruptEnable = false;
-	m_Mutex = CreateMutex (NULL, FALSE, NULL);
 
 }
 
 CpuModule::~CpuModule()
 {
-	CloseHandle(m_Mutex);
 }
 
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒŠƒZƒbƒg
- *  ŠT—v
- *      ƒuƒƒbƒNƒŠƒZƒbƒg
- *  ƒpƒ‰ƒƒ^à–¾
- *      ‚È‚µ
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒªã‚»ãƒƒãƒˆ
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯ãƒªã‚»ãƒƒãƒˆ
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *      ãªã—
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    CpuModule::Reset(TVOID)
 {
 	TINT counter;
 	
-	//•K—v‚É‰‚¶‚ÄƒGƒ“ƒWƒ“ŒÅ—L‚Ì‰Šú‰»ˆ—ŠÖ”‚ğƒR[ƒ‹‚µ‚Ä‰º‚³‚¢
-	//ƒŒƒWƒXƒ^‰Šú‰»
+	//å¿…è¦ã«å¿œã˜ã¦ã‚¨ãƒ³ã‚¸ãƒ³å›ºæœ‰ã®åˆæœŸåŒ–å‡¦ç†é–¢æ•°ã‚’ã‚³ãƒ¼ãƒ«ã—ã¦ä¸‹ã•ã„
+	//ãƒ¬ã‚¸ã‚¹ã‚¿åˆæœŸåŒ–
 	for(counter = 0;counter <= 15;counter++){
 		SetReg(CpuModule_BASE_ADDR+counter,0x0000);
 	}
-	//ƒXƒ^ƒbƒNƒ|ƒCƒ“ƒ^‰Šú‰»
+	//ã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿åˆæœŸåŒ–
 	SetReg(CpuModule_SP_ADDR,0xf000);
 
-	//–½—ß•¶Ši”[—Ìˆæ‰Šú‰»
+	//å‘½ä»¤æ–‡æ ¼ç´é ˜åŸŸåˆæœŸåŒ–
 	int i;
 	for(i = 0; i < 4; i++) {
 		m_value_oc[i] = 0;
 	}
-	//ƒTƒCƒNƒ‹’l‚Ì‰Šú‰»
+	//ã‚µã‚¤ã‚¯ãƒ«å€¤ã®åˆæœŸåŒ–
 	m_cycleCount = 0;
 
 	m_Busy = 0;
@@ -160,80 +159,80 @@ TINT    CpuModule::Reset(TVOID)
 
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒuƒƒbƒNƒvƒƒpƒeƒB
- *  ŠT—v
- *      ƒuƒƒbƒN‚ÉŠÖ‚·‚éî•ñ‚ğ•Ô‚·
- *  ƒpƒ‰ƒƒ^à–¾
- *      ‚È‚µ
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒ–ãƒ­ãƒƒã‚¯ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯ã«é–¢ã™ã‚‹æƒ…å ±ã‚’è¿”ã™
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *      ãªã—
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    CpuModule::Status(TVOID)                                  
 {
-    return m_Busy;							// ƒuƒƒbƒNƒXƒe[ƒ^ƒXæ“¾
+    return m_Busy;							// ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å–å¾—
 }
 
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒuƒƒbƒN‹@”\Às
- *  ŠT—v
- *      ƒuƒƒbƒN‹@”\‚ÉŠÖ‚·‚éÀ‘•
- *  ƒpƒ‰ƒƒ^à–¾
- *      cmd         : ƒRƒ}ƒ“ƒhID
- *      addr        : ƒAƒhƒŒƒX
- *      data        : ƒf[ƒ^iVerilogŒ`®‚ÌƒRƒ}ƒ“ƒhd—l‚ÉˆË‘¶‚µ‚Ü‚·j
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½å®Ÿè¡Œ
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½ã«é–¢ã™ã‚‹å®Ÿè£…
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *      cmd         : ã‚³ãƒãƒ³ãƒ‰ID
+ *      addr        : ã‚¢ãƒ‰ãƒ¬ã‚¹
+ *      data        : ãƒ‡ãƒ¼ã‚¿ï¼ˆVerilogå½¢å¼ã®ã‚³ãƒãƒ³ãƒ‰ä»•æ§˜ã«ä¾å­˜ã—ã¾ã™ï¼‰
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT    CpuModule::Exec()
 {
-	/*  ˆÈ‰º cmd,addr,data ‚Ì’l‚É‰‚¶‚½ˆ—‚ğ‹Lq‚µ‚Ä‰º‚³‚¢B
-        –ß‚è’l‚É D_CMDIF_ACK ‚ğİ’è‚·‚é‚ÆAƒXƒNƒŠƒvƒgƒGƒ“ƒWƒ“‚ÍŸ‚ÌƒRƒ}ƒ“ƒh‚ğ“Ç‚İ‚İ‚Ü‚·
-        –ß‚è’l‚É D_CMDIF_NACK ‚ğİ’è‚·‚é‚ÆAƒXƒNƒŠƒvƒgƒGƒ“ƒWƒ“‚Í“¯ˆêƒRƒ}ƒ“ƒh‚ğ—^‚¦‘±‚¯‚Ü‚·(Ÿ‚ÌƒRƒ}ƒ“ƒh‚Éi‚İ‚Ü‚¹‚ñ)
-        –ß‚è’l‚É D_CMDIF_VL_QUIT ‚ğİ’è‚·‚é‚ÆƒXƒNƒŠƒvƒgˆ—‚ğ“r’†‚Å‚à‹­§I—¹‚µ‚Ü‚·
+	/*  ä»¥ä¸‹ cmd,addr,data ã®å€¤ã«å¿œã˜ãŸå‡¦ç†ã‚’è¨˜è¿°ã—ã¦ä¸‹ã•ã„ã€‚
+        æˆ»ã‚Šå€¤ã« D_CMDIF_ACK ã‚’è¨­å®šã™ã‚‹ã¨ã€ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚¨ãƒ³ã‚¸ãƒ³ã¯æ¬¡ã®ã‚³ãƒãƒ³ãƒ‰ã‚’èª­ã¿è¾¼ã¿ã¾ã™
+        æˆ»ã‚Šå€¤ã« D_CMDIF_NACK ã‚’è¨­å®šã™ã‚‹ã¨ã€ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚¨ãƒ³ã‚¸ãƒ³ã¯åŒä¸€ã‚³ãƒãƒ³ãƒ‰ã‚’ä¸ãˆç¶šã‘ã¾ã™(æ¬¡ã®ã‚³ãƒãƒ³ãƒ‰ã«é€²ã¿ã¾ã›ã‚“)
+        æˆ»ã‚Šå€¤ã« D_CMDIF_VL_QUIT ã‚’è¨­å®šã™ã‚‹ã¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆå‡¦ç†ã‚’é€”ä¸­ã§ã‚‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™
 
-        –ß‚è’l‚É D_EXEC_OK   ‚ğİ’è‚·‚é‚ÆAƒuƒƒbƒN‚ÌÀs‚ğŒp‘±‚µ‚Ü‚·
-        –ß‚è’l‚É D_EXEC_HOLD ‚ğİ’è‚·‚é‚ÆAÀs‚ğI—¹‚µ‚Ü‚·
+        æˆ»ã‚Šå€¤ã« D_EXEC_OK   ã‚’è¨­å®šã™ã‚‹ã¨ã€ãƒ–ãƒ­ãƒƒã‚¯ã®å®Ÿè¡Œã‚’ç¶™ç¶šã—ã¾ã™
+        æˆ»ã‚Šå€¤ã« D_EXEC_HOLD ã‚’è¨­å®šã™ã‚‹ã¨ã€å®Ÿè¡Œã‚’çµ‚äº†ã—ã¾ã™
 
-		‚È‚¨Ago ƒRƒ}ƒ“ƒhÀs‚ÍAcmd,addr,data = -1, -1, -1 ŒÅ’è‚Æ‚È‚Á‚Ä‚¢‚Ü‚·
+		ãªãŠã€go ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œæ™‚ã¯ã€cmd,addr,data = -1, -1, -1 å›ºå®šã¨ãªã£ã¦ã„ã¾ã™
     */
 	//TW32U theTmp = 0x0, valid = 0x01010101;
-	TINT fetchCount = 0;			//ƒtƒFƒbƒ`ˆ—‰ñ”Ši”[•Ï”
-	TINT status;					//Execˆ—Œ‹‰ÊŠi”[•Ï”
+	TINT fetchCount = 0;			//ãƒ•ã‚§ãƒƒãƒå‡¦ç†å›æ•°æ ¼ç´å¤‰æ•°
+	TINT status;					//Execå‡¦ç†çµæœæ ¼ç´å¤‰æ•°
 	TW32U	reg_value = 0x0;
 	TW32U	reg_pc = 0x0;
 	TW32U	int_val;
 
-	//•Ï”‰Šú‰»
+	//å¤‰æ•°åˆæœŸåŒ–
 	status = 0;
 
-	// Š„‚İƒ`ƒFƒbƒN
+	// å‰²è¾¼ã¿ãƒã‚§ãƒƒã‚¯
 	if(m_cycleCount <= 0){
 		// Critical Section Start
 		WaitForSingleObject( m_Mutex, INFINITE );
 
-		// Š„‚İ—LŒø•Œ»İŠ„‚İˆ—’†‚Å‚È‚¯‚ê‚Î
+		// å‰²è¾¼ã¿æœ‰åŠ¹ï¼†ç¾åœ¨å‰²è¾¼ã¿å‡¦ç†ä¸­ã§ãªã‘ã‚Œã°
 		if(m_InterruptEnable) {
-			// Š„‚İİ’è‚ğæ“¾
+			// å‰²è¾¼ã¿è¨­å®šã‚’å–å¾—
 			GetReg(CpuModule_INT_ADDR, reg_value);
 
-			// Š„‚İƒ`ƒFƒbƒN
+			// å‰²è¾¼ã¿ãƒã‚§ãƒƒã‚¯
 			for(int intnum = 0; gInterruptList[intnum].reason != 0; intnum++) {
 				if( (m_InterruptTrap & gInterruptList[intnum].reason) == gInterruptList[intnum].reason) {
 					if( (gInterruptList[intnum].mask > 0 && (reg_value & gInterruptList[intnum].reason) == 0) || gInterruptList[intnum].mask == 0) {
-						// Š„‚İ”­¶
+						// å‰²è¾¼ã¿ç™ºç”Ÿ
 						reg_value |= gInterruptList[intnum].reason;
-						SetReg(CpuModule_INT_ADDR, reg_value);				// Š„‚İ—vˆöİ’è
-						// ¦Ÿ‚ÉŠ„‚İ‚ğó‚¯•t‚¯‚é‚½‚ß‚É‚ÍAŠ„‚İƒ‹[ƒ`ƒ““à‚ÅŠ„‚İ—vˆö‚ğƒNƒŠƒA‚·‚é‚±‚Æ
+						SetReg(CpuModule_INT_ADDR, reg_value);				// å‰²è¾¼ã¿è¦å› è¨­å®š
+						// â€»æ¬¡ã«å‰²è¾¼ã¿ã‚’å—ã‘ä»˜ã‘ã‚‹ãŸã‚ã«ã¯ã€å‰²è¾¼ã¿ãƒ«ãƒ¼ãƒãƒ³å†…ã§å‰²è¾¼ã¿è¦å› ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ã“ã¨
 
-						m_InterruptTrap &= (0xFFFFFFFF - gInterruptList[intnum].reason);	// Š„‚İƒgƒ‰ƒbƒv‰ğœ
+						m_InterruptTrap &= (0xFFFFFFFF - gInterruptList[intnum].reason);	// å‰²è¾¼ã¿ãƒˆãƒ©ãƒƒãƒ—è§£é™¤
 
-						//PC“à‚Ì’l‚ğƒXƒ^ƒbƒN‚É‘Ş”ğ
+						//PCå†…ã®å€¤ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«é€€é¿
 						pushr(CpuModule_PC_ADDR);
 
-						//Š„‚İƒxƒNƒ^‚Ö•ªŠò
+						//å‰²è¾¼ã¿ãƒ™ã‚¯ã‚¿ã¸åˆ†å²
 						m_ParentBus->lock();
 						m_ParentBus->set_address(Interrupt_Vector_Table + intnum);
 						m_ParentBus->access_read();
@@ -249,40 +248,40 @@ TINT    CpuModule::Exec()
 		ReleaseMutex(m_Mutex);
 	}
 
-	//ƒIƒyƒ‰ƒ“ƒhƒR[ƒh‚Ì“Ç‚İ‚İˆ—
+	//ã‚ªãƒšãƒ©ãƒ³ãƒ‰ã‚³ãƒ¼ãƒ‰ã®èª­ã¿è¾¼ã¿å‡¦ç†
 	if(m_cycleCount <= 0){
 		for(int i = 0;i <= fetchCount && (fetchCount >= 0);i++){
-			//ƒtƒFƒbƒ`ˆ—
+			//ãƒ•ã‚§ãƒƒãƒå‡¦ç†
 			m_value_oc[i] = fetch();
 			if(i == 0){
-				//ƒfƒR[ƒhˆ—iƒtƒFƒbƒ`‰ñ”İ’èj
+				//ãƒ‡ã‚³ãƒ¼ãƒ‰å‡¦ç†ï¼ˆãƒ•ã‚§ãƒƒãƒå›æ•°è¨­å®šï¼‰
 				fetchCount = decode(m_value_oc[0],m_cycleCount);
 				if(fetchCount == D_ERR_CMDERR) {
 					int_val = Interrupt_DETrap;
-					Interrupt(D_MODULEID_CPU, int_val);	// ƒf[ƒ^Às—áŠOŠ„‚İ
-					m_cycleCount = 0;					// –½—ßÀs’†~
-					break;	// ƒfƒR[ƒhƒGƒ‰[ŒŸo
+					Interrupt(D_MODULEID_CPU, int_val);	// ãƒ‡ãƒ¼ã‚¿å®Ÿè¡Œä¾‹å¤–å‰²è¾¼ã¿
+					m_cycleCount = 0;					// å‘½ä»¤å®Ÿè¡Œä¸­æ­¢
+					break;	// ãƒ‡ã‚³ãƒ¼ãƒ‰ã‚¨ãƒ©ãƒ¼æ¤œå‡º
 				}
 			}
 			
 		}
 	}
-	//ÀsƒTƒCƒNƒ‹”»’è
+	//å®Ÿè¡Œã‚µã‚¤ã‚¯ãƒ«åˆ¤å®š
 	if(m_cycleCount == 1 /*&& fetchCount >= 0*/){
-		//Àsˆ—
+		//å®Ÿè¡Œå‡¦ç†
 		exe(m_value_oc[0],m_value_oc[1],m_value_oc[2],m_value_oc[3]);
 	}
 
-	//ƒTƒCƒNƒ‹ƒJƒEƒ“ƒgXV
+	//ã‚µã‚¤ã‚¯ãƒ«ã‚«ã‚¦ãƒ³ãƒˆæ›´æ–°
 	m_cycleCount--;
 
-	//Œ‹‰Ê”»’f
+	//çµæœåˆ¤æ–­
 	switch(m_value_oc[0]){
 		case HOLT_OC:
-			status = D_EXEC_HOLD;	// ƒGƒ“ƒWƒ“Àsˆ—I—¹‚Ìê‡
+			status = D_EXEC_HOLD;	// ã‚¨ãƒ³ã‚¸ãƒ³å®Ÿè¡Œå‡¦ç†çµ‚äº†ã®å ´åˆ
 			break;
 		default:
-			status = D_EXEC_OK;		// Œp‘±Às’†‚Ìê‡
+			status = D_EXEC_OK;		// ç¶™ç¶šå®Ÿè¡Œä¸­ã®å ´åˆ
 			break;
 	}
 	return status;
@@ -290,20 +289,20 @@ TINT    CpuModule::Exec()
 
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒAƒNƒZƒXI/F
- *  ŠT—v
- *      ƒuƒƒbƒN“àƒŠƒ\[ƒX‚Æ‚ÌGet&Set-I/F’è‹`
- *  ƒpƒ‰ƒƒ^à–¾
- *      MemID       : ƒƒ‚ƒŠID
- *      addr        : ƒAƒNƒZƒXƒAƒhƒŒƒX
- *      value       : ‘‚«‚İ’l(Set)
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      ã‚¢ã‚¯ã‚»ã‚¹I/F
+ *  æ¦‚è¦
+ *      ãƒ–ãƒ­ãƒƒã‚¯å†…ãƒªã‚½ãƒ¼ã‚¹ã¨ã®Get&Set-I/Få®šç¾©
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *      MemID       : ãƒ¡ãƒ¢ãƒªID
+ *      addr        : ã‚¢ã‚¯ã‚»ã‚¹ã‚¢ãƒ‰ãƒ¬ã‚¹
+ *      value       : æ›¸ãè¾¼ã¿å€¤(Setæ™‚)
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT   CpuModule::GetReg(TINT addr, TW32U &value)
 {
-    /* addr‚Å¦‚·ƒŒƒWƒXƒ^ƒAƒhƒŒƒX‚ÌƒŒƒWƒXƒ^’l‚ğ value ‚Éİ’è‚·‚éˆ—‚ğ‹Lq‚µ‚Ä‰º‚³‚¢ */
+    /* addrã§ç¤ºã™ãƒ¬ã‚¸ã‚¹ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ãƒ¬ã‚¸ã‚¹ã‚¿å€¤ã‚’ value ã«è¨­å®šã™ã‚‹å‡¦ç†ã‚’è¨˜è¿°ã—ã¦ä¸‹ã•ã„ */
 	TINT	baddr;
 	if(addr < CpuModule_BASE_ADDR){
 		baddr = (addr+CpuModule_USR_ADDR) - CpuModule_BASE_ADDR;
@@ -317,7 +316,7 @@ TINT   CpuModule::GetReg(TINT addr, TW32U &value)
 
 TINT    CpuModule::SetReg(TINT addr, TW32U value)
 {
-    /* addr‚Å¦‚·ƒŒƒWƒXƒ^ƒAƒhƒŒƒX‚ÉƒŒƒWƒXƒ^’l value ‚ğİ’è‚·‚éˆ—‚ğ‹Lq‚µ‚Ä‰º‚³‚¢ */
+    /* addrã§ç¤ºã™ãƒ¬ã‚¸ã‚¹ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹ã«ãƒ¬ã‚¸ã‚¹ã‚¿å€¤ value ã‚’è¨­å®šã™ã‚‹å‡¦ç†ã‚’è¨˜è¿°ã—ã¦ä¸‹ã•ã„ */
 	TINT	baddr;
 	if(addr < CpuModule_BASE_ADDR){
 		baddr = (addr+CpuModule_USR_ADDR) - CpuModule_BASE_ADDR;
@@ -331,8 +330,8 @@ TINT    CpuModule::SetReg(TINT addr, TW32U value)
 
 TINT   CpuModule::GetMem(TW32U addr, TW32U &value, TW32U &valid)
 {
-    /* MemID‚Å¦‚³‚ê‚é‘ÎÛƒƒ‚ƒŠ(ƒoƒ“ƒN”Ô†=MemBank)‚ÌAƒAƒhƒŒƒXaddr‚©‚ç’l‚ğRead‚µ‚Ävalue‚Éİ’è‚µ‚Ü‚· */
-    //ãˆÊbit‚ğÁ‚·
+    /* MemIDã§ç¤ºã•ã‚Œã‚‹å¯¾è±¡ãƒ¡ãƒ¢ãƒª(ãƒãƒ³ã‚¯ç•ªå·=MemBank)ã®ã€ã‚¢ãƒ‰ãƒ¬ã‚¹addrã‹ã‚‰å€¤ã‚’Readã—ã¦valueã«è¨­å®šã—ã¾ã™ */
+    //ä¸Šä½bitã‚’æ¶ˆã™
 	addr = addr & 0x0000ffff;
 
 	m_ParentBus->lock();
@@ -346,7 +345,7 @@ TINT   CpuModule::GetMem(TW32U addr, TW32U &value, TW32U &valid)
 
 TINT    CpuModule::SetMem(TW32U addr, TW32U value)
 {
-    /* MemID‚Å¦‚³‚ê‚é‘ÎÛƒƒ‚ƒŠ(ƒoƒ“ƒN”Ô†=MemBank)‚ÌAƒAƒhƒŒƒXaddr‚Ö’lvalue‚ğWrite‚µ‚Ü‚· */
+    /* MemIDã§ç¤ºã•ã‚Œã‚‹å¯¾è±¡ãƒ¡ãƒ¢ãƒª(ãƒãƒ³ã‚¯ç•ªå·=MemBank)ã®ã€ã‚¢ãƒ‰ãƒ¬ã‚¹addrã¸å€¤valueã‚’Writeã—ã¾ã™ */
 	m_ParentBus->lock();
 	m_ParentBus->set_address(addr);
 	m_ParentBus->set_data(value);
@@ -358,19 +357,19 @@ TINT    CpuModule::SetMem(TW32U addr, TW32U value)
 
 TW32U*	CpuModule::MemPtr(TW32U addr)
 {
-	return NULL;	// Null¨ƒ|ƒCƒ“ƒ^•Ï”–¼‚É•ÏX‚µ‚Ä‰º‚³‚¢
+	return NULL;	// Nullâ†’ãƒã‚¤ãƒ³ã‚¿å¤‰æ•°åã«å¤‰æ›´ã—ã¦ä¸‹ã•ã„
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      Š„‚İó•t‚¯
- *  ŠT—v
- *      ŠO•”ƒ^ƒCƒ}“™‚©‚ç‚ÌŠ„‚İó•t‚¯
- *  ƒpƒ‰ƒƒ^à–¾
- *      src_module_id : Š„‚İŒ³ƒ‚ƒWƒ…[ƒ‹ID(ƒoƒX‚©‚ç“n‚³‚ê‚é)
- *      param         : ƒpƒ‰ƒ[ƒ^
- *  –ß‚è’l
- *      0           : ³íI—¹Aother : ˆÙíI—¹
+ *  é–¢æ•°å
+ *      å‰²è¾¼ã¿å—ä»˜ã‘
+ *  æ¦‚è¦
+ *      å¤–éƒ¨ã‚¿ã‚¤ãƒç­‰ã‹ã‚‰ã®å‰²è¾¼ã¿å—ä»˜ã‘
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *      src_module_id : å‰²è¾¼ã¿å…ƒãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ID(ãƒã‚¹ã‹ã‚‰æ¸¡ã•ã‚Œã‚‹)
+ *      param         : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+ *  æˆ»ã‚Šå€¤
+ *      0           : æ­£å¸¸çµ‚äº†ã€other : ç•°å¸¸çµ‚äº†
  *============================================================================*/
 TINT CpuModule::Interrupt(int src_module_id, TW32U &param)
 {
@@ -380,55 +379,55 @@ TINT CpuModule::Interrupt(int src_module_id, TW32U &param)
 	WaitForSingleObject( m_Mutex, INFINITE );
 
 	if(m_InterruptEnable) {
-		// Š„‚İİ’è‚ğæ“¾
+		// å‰²è¾¼ã¿è¨­å®šã‚’å–å¾—
 		GetReg(CpuModule_INT_ADDR, reg_value);
 
-		// Š„‚İ—vˆöƒ`ƒFƒbƒN
+		// å‰²è¾¼ã¿è¦å› ãƒã‚§ãƒƒã‚¯
 		switch(param) {
 			case Interrupt_Timer:
 				if((reg_value & CpuModule_BIT0) == CpuModule_BIT0) {
-					m_InterruptTrap |= Interrupt_Timer;		// ƒ^ƒCƒ}[Š„‚İ
+					m_InterruptTrap |= Interrupt_Timer;		// ã‚¿ã‚¤ãƒãƒ¼å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_Software:
 				if((reg_value & CpuModule_BIT1) == CpuModule_BIT1) {
-					m_InterruptTrap |= param;				// ƒ\ƒtƒgƒEƒFƒAŠ„‚İ
+					m_InterruptTrap |= param;				// ã‚½ãƒ•ãƒˆã‚¦ã‚§ã‚¢å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_Dma:
 				if((reg_value & CpuModule_BIT2) == CpuModule_BIT2) {
-					m_InterruptTrap |= Interrupt_Dma;		// DMA“]‘—Š®—¹Š„‚İ
+					m_InterruptTrap |= Interrupt_Dma;		// DMAè»¢é€å®Œäº†å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_Trigger0:
 				if((reg_value & CpuModule_BIT3) == CpuModule_BIT3) {
-					m_InterruptTrap |= Interrupt_Trigger0;	// ŠO•”ƒgƒŠƒK[0Š„‚İ
+					m_InterruptTrap |= Interrupt_Trigger0;	// å¤–éƒ¨ãƒˆãƒªã‚¬ãƒ¼0å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_Trigger1:
 				if((reg_value & CpuModule_BIT4) == CpuModule_BIT4) {
-					m_InterruptTrap |= Interrupt_Trigger1;	// ŠO•”ƒgƒŠƒK[1Š„‚İ
+					m_InterruptTrap |= Interrupt_Trigger1;	// å¤–éƒ¨ãƒˆãƒªã‚¬ãƒ¼1å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_Trigger2:
 				if((reg_value & CpuModule_BIT5) == CpuModule_BIT5) {
-					m_InterruptTrap |= Interrupt_Trigger2;	// ŠO•”ƒgƒŠƒK[2Š„‚İ
+					m_InterruptTrap |= Interrupt_Trigger2;	// å¤–éƒ¨ãƒˆãƒªã‚¬ãƒ¼2å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_SCIRecv:
 				if((reg_value & CpuModule_BIT6) == CpuModule_BIT6) {
-					m_InterruptTrap |= Interrupt_SCIRecv;	// ƒVƒŠƒAƒ‹óMŠ„‚İ
+					m_InterruptTrap |= Interrupt_SCIRecv;	// ã‚·ãƒªã‚¢ãƒ«å—ä¿¡å‰²è¾¼ã¿
 				}
 				break;
 
 			case Interrupt_DETrap:
-				m_InterruptTrap |= param;					// ƒf[ƒ^Às—áŠO
+				m_InterruptTrap |= param;					// ãƒ‡ãƒ¼ã‚¿å®Ÿè¡Œä¾‹å¤–
 				break;
 
 			default:
@@ -438,73 +437,73 @@ TINT CpuModule::Interrupt(int src_module_id, TW32U &param)
 
 	// Critical Section End
 	ReleaseMutex(m_Mutex);
-	return D_EXEC_OK;		// Œp‘±Às’†‚Ìê‡
+	return D_EXEC_OK;		// ç¶™ç¶šå®Ÿè¡Œä¸­ã®å ´åˆ
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒtƒFƒbƒ`
- *  ŠT—v
- *      PCƒŒƒWƒXƒ^‚ªw‚·ƒƒ‚ƒŠƒAƒhƒŒƒX‚ÌƒIƒyƒR[ƒh‚ğæ“¾‚·‚é
- *  ƒpƒ‰ƒƒ^à–¾
+ *  é–¢æ•°å
+ *      ãƒ•ã‚§ãƒƒãƒ
+ *  æ¦‚è¦
+ *      PCãƒ¬ã‚¸ã‚¹ã‚¿ãŒæŒ‡ã™ãƒ¡ãƒ¢ãƒªã‚¢ãƒ‰ãƒ¬ã‚¹ã®ã‚ªãƒšã‚³ãƒ¼ãƒ‰ã‚’å–å¾—ã™ã‚‹
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
  *
  *      
- *  –ß‚è’l
- *      	ƒƒ‚ƒŠ”Ô’n
+ *  æˆ»ã‚Šå€¤
+ *      	ãƒ¡ãƒ¢ãƒªç•ªåœ°
  *============================================================================*/
 TW16U	CpuModule::fetch(TVOID)
 {
 	TW32U value,valid,mem_value = 0;
 
-	//PC‚Ì’læ“¾
+	//PCã®å€¤å–å¾—
 	GetReg(CpuModule_PC_ADDR,value);
 
-	//PC‚ªw‚µ¦‚·ƒƒ‚ƒŠƒAƒhƒŒƒX’l‚ğæ“¾
+	//PCãŒæŒ‡ã—ç¤ºã™ãƒ¡ãƒ¢ãƒªã‚¢ãƒ‰ãƒ¬ã‚¹å€¤ã‚’å–å¾—
 	GetMem(value, mem_value, valid);
 
-	//PC‚Ì’lXV
+	//PCã®å€¤æ›´æ–°
 	SetReg(CpuModule_PC_ADDR,++value);
 
 	return (TW16U) mem_value;
 }
 /*============================================================================*
- *  ŠÖ”–¼
- *      ƒfƒR[ƒh
- *  ŠT—v
- *      ƒIƒy’l‚©‚çÀs‚·‚éƒƒ\ƒbƒh‚Ì’l‚ğ•Ô‚·
- *  ƒpƒ‰ƒƒ^à–¾
- *			mem_value@@:@ƒIƒyƒŒ[ƒVƒ‡ƒ“ƒR[ƒh’l
- *			exeycle@@@:@ƒIƒyƒŒ[ƒVƒ‡ƒ“ƒTƒCƒNƒ‹Ši”[•Ï”
+ *  é–¢æ•°å
+ *      ãƒ‡ã‚³ãƒ¼ãƒ‰
+ *  æ¦‚è¦
+ *      ã‚ªãƒšå€¤ã‹ã‚‰å®Ÿè¡Œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã®å€¤ã‚’è¿”ã™
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *			mem_valueã€€ã€€:ã€€ã‚ªãƒšãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚³ãƒ¼ãƒ‰å€¤
+ *			exeycleã€€ã€€ã€€:ã€€ã‚ªãƒšãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚µã‚¤ã‚¯ãƒ«æ ¼ç´å¤‰æ•°
  *      
- *  –ß‚è’l
- *      int		ƒtƒFƒbƒ`ˆ—‰ñ”’l
+ *  æˆ»ã‚Šå€¤
+ *      int		ãƒ•ã‚§ãƒƒãƒå‡¦ç†å›æ•°å€¤
  *============================================================================*/
 TINT	CpuModule::decode(TW16U mem_value,TINT &exeycle)
 {
-	//ƒIƒyƒŒ[ƒVƒ‡ƒ“’lŠm”F
+	//ã‚ªãƒšãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³å€¤ç¢ºèª
 	if(mem_value < OC_MIN || mem_value > OC_MAX)
 	{
 		return D_ERR_CMDERR;
 	}
 
-	//ÀsƒTƒCƒNƒ‹’l
+	//å®Ÿè¡Œã‚µã‚¤ã‚¯ãƒ«å€¤
 	exeycle = gCodeParam[mem_value].cycle;
 
 	return gCodeParam[mem_value].operand;
 }
 /*============================================================================*
- *  ŠÖ”–¼
- *      Às
- *  ŠT—v
- *     ’l‚©‚çÀs‚·‚éƒƒ\ƒbƒh‚ğ‘I‘ğ‚µÀsƒƒ\ƒbƒh‚ğŒÄ‚Ño‚·
- *  ƒpƒ‰ƒƒ^à–¾
- *			value@@:	ƒIƒyƒŒ[ƒVƒ‡ƒ“ƒR[ƒh@
- *          addr1    :@ƒIƒyƒ‰ƒ“ƒh‚P
- *          addr2    :@ƒIƒyƒ‰ƒ“ƒh‚Q
- *          addr3    :@ƒIƒyƒ‰ƒ“ƒh‚R
+ *  é–¢æ•°å
+ *      å®Ÿè¡Œ
+ *  æ¦‚è¦
+ *     å€¤ã‹ã‚‰å®Ÿè¡Œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’é¸æŠã—å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰ã‚’å‘¼ã³å‡ºã™
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
+ *			valueã€€ã€€:	ã‚ªãƒšãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚³ãƒ¼ãƒ‰ã€€
+ *          addr1    :ã€€ã‚ªãƒšãƒ©ãƒ³ãƒ‰ï¼‘
+ *          addr2    :ã€€ã‚ªãƒšãƒ©ãƒ³ãƒ‰ï¼’
+ *          addr3    :ã€€ã‚ªãƒšãƒ©ãƒ³ãƒ‰ï¼“
  *      
- *  –ß‚è’l
- *      int		Àsƒƒ\ƒbƒhƒCƒ“ƒfƒbƒNƒX
+ *  æˆ»ã‚Šå€¤
+ *      int		å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
  *============================================================================*/
 TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 {
@@ -567,7 +566,7 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 			xorrr(addr1,addr2);
 			break;
 
-		//Bit‰‰Z
+		//Bitæ¼”ç®—
 		case TST_R_B_OC:
 			tstrb(addr1, addr2);
 			break;
@@ -641,7 +640,7 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 			brneq(addr1);
 			break;
 
-		//Š„‚è‚İ
+		//å‰²ã‚Šè¾¼ã¿
 		case EI_OC:
 			ei();
 			break;
@@ -658,7 +657,7 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 			reti();
 			break;
 
-		/*Àsƒƒ\ƒbƒh‚ğ’Ç‰Á‚µ‚Ä‚¢‚­*/
+		/*å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰ã‚’éšæ™‚è¿½åŠ ã—ã¦ã„ã*/
 		default :
 			halt();		// Unknown mnemonic. Force halt cpu.
 			break;
@@ -667,13 +666,13 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 }
 
 /*============================================================================*
- *  ŠÖ”–¼
- *      @@Àsƒƒ\ƒbƒhŒQ
- *  ŠT—v
- *     ƒIƒyƒR[ƒh‚ğÀÛ‚ÉÀŒ»‚·‚éÛ‚Ìˆ—ƒƒ\ƒbƒhŒQ
- *  ƒpƒ‰ƒƒ^à–¾
+ *  é–¢æ•°å
+ *      ã€€ã€€å®Ÿè¡Œãƒ¡ã‚½ãƒƒãƒ‰ç¾¤
+ *  æ¦‚è¦
+ *     ã‚ªãƒšã‚³ãƒ¼ãƒ‰ã‚’å®Ÿéš›ã«å®Ÿç¾ã™ã‚‹éš›ã®å‡¦ç†ãƒ¡ã‚½ãƒƒãƒ‰ç¾¤
+ *  ãƒ‘ãƒ©ãƒ¡ã‚¿èª¬æ˜
  *      
- *  –ß‚è’l
+ *  æˆ»ã‚Šå€¤
  *      
  *============================================================================*/
 //nop
@@ -691,7 +690,7 @@ TINT	CpuModule::addrm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 	
-	//reg+value‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//reg+valueã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg,reg_value+value);
 
 	return D_ERR_OK;
@@ -700,13 +699,13 @@ TINT	CpuModule::addrm(TW16U reg,TW16U value){
 TINT	CpuModule::addrr(TW16U reg1,TW16U reg2){
 	TW32U value1,value2;
 
-	//ƒŒƒWƒXƒ^A‚©‚ç’lA‚ğæ‚èo‚·
+	//ãƒ¬ã‚¸ã‚¹ã‚¿Aã‹ã‚‰å€¤Aã‚’å–ã‚Šå‡ºã™
 	GetReg(reg1,value1);
 	
-	//ƒŒƒWƒXƒ^A‚©‚ç’lB‚ğæ‚èo‚·
+	//ãƒ¬ã‚¸ã‚¹ã‚¿Aã‹ã‚‰å€¤Bã‚’å–ã‚Šå‡ºã™
 	GetReg(reg2,value2);
 	
-	//A+B‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//A+Bã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg1,value1+value2);
 
 	return D_ERR_OK;
@@ -717,7 +716,7 @@ TINT	CpuModule::subrm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//reg-value‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//reg-valueã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg,reg_value-value);
 
 	return D_ERR_OK;
@@ -726,13 +725,13 @@ TINT	CpuModule::subrm(TW16U reg,TW16U value){
 TINT	CpuModule::subrr(TW16U reg1,TW16U reg2){
 	TW32U value1,value2;
 
-	//’lA‚ğæ‚èo‚·
+	//å€¤Aã‚’å–ã‚Šå‡ºã™
 	GetReg(reg1,value1);
 
-	//’lB‚ğæ‚èo‚·
+	//å€¤Bã‚’å–ã‚Šå‡ºã™
 	GetReg(reg2,value2);
 
-	//A-B‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//A-Bã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg1,value1-value2);
 	return D_ERR_OK;
 }
@@ -742,7 +741,7 @@ TINT	CpuModule::incr(TW16U reg1){
 
 	GetReg(reg1,value1);
 
-	//++reg_value ‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//++reg_value ã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg1,++value1);
 	return D_ERR_OK;
 }
@@ -752,7 +751,7 @@ TINT	CpuModule::decr(TW16U reg1){
 
 	GetReg(reg1,value1);
 
-	//--reg_value ‚ğƒŒƒWƒXƒ^‚ÉŠi”[‚·‚é
+	//--reg_value ã‚’ãƒ¬ã‚¸ã‚¹ã‚¿ã«æ ¼ç´ã™ã‚‹
 	SetReg(reg1,--value1);
 	return D_ERR_OK;
 }
@@ -760,22 +759,22 @@ TINT	CpuModule::decr(TW16U reg1){
 TINT	CpuModule::cmprm(TW16U reg,TW16U value){
 	TW32U reg_value,ccr_value;
 
-	//ƒŒƒWƒXƒ^‚Ì’l‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤ã‚’å–å¾—ã™ã‚‹
 	GetReg(reg,reg_value);
 
-	//ccrƒŒƒWƒXƒ^‚Ì’l‚ğæ“¾‚·‚é
+	//ccrãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤ã‚’å–å¾—ã™ã‚‹
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
 
-	if(reg_value > value){				//¶‚ª‘å‚«‚¢
+	if(reg_value > value){				//å·¦ãŒå¤§ãã„
 		ccr_value = ccr_value & (CpuModule_BIT6 ^ 0xffff);
 		ccr_value = ccr_value | CpuModule_BIT5;
 	}	
-	if(reg_value == value){				//“™‚µ‚¢
+	if(reg_value == value){				//ç­‰ã—ã„
 		ccr_value = ccr_value & (CpuModule_BIT5 ^ 0xffff);
 		ccr_value = ccr_value | CpuModule_BIT6;
 	}
-	if(reg_value < value){				//¶‚ª¬‚³‚¢
+	if(reg_value < value){				//å·¦ãŒå°ã•ã„
 		ccr_value = ccr_value & (CpuModule_BIT6 ^ 0xffff);
 		ccr_value = ccr_value & (CpuModule_BIT5 ^ 0xffff);
 	}
@@ -787,22 +786,22 @@ TINT	CpuModule::cmprm(TW16U reg,TW16U value){
 TINT	CpuModule::cmprr(TW16U reg1,TW16U reg2){
 	TW32U value1,value2,ccr_value;
 
-	//ƒŒƒWƒXƒ^‚Ì’lA‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤Aã‚’å–å¾—ã™ã‚‹
 	GetReg(reg1,value1);
 
-	//ƒŒƒWƒXƒ^‚Ì’lB‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤Bã‚’å–å¾—ã™ã‚‹
 	GetReg(reg2,value2);
 
-	//ccrƒŒƒWƒXƒ^‚Ì’l‚ğæ“¾‚·‚é
+	//ccrãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤ã‚’å–å¾—ã™ã‚‹
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
-	if(value1 > value2){				//¶‚ª‘å‚«‚¢
+	if(value1 > value2){				//å·¦ãŒå¤§ãã„
 		ccr_value = ccr_value & (CpuModule_BIT6 ^ 0xffff);
 		ccr_value = ccr_value | CpuModule_BIT5;
-	} else if(value1 == value2){		//“™‚µ‚¢
+	} else if(value1 == value2){		//ç­‰ã—ã„
 		ccr_value = ccr_value & (CpuModule_BIT5 ^ 0xffff);
 		ccr_value = ccr_value | CpuModule_BIT6;
-	} else {							//¶‚ª¬‚³‚¢
+	} else {							//å·¦ãŒå°ã•ã„
 		ccr_value = ccr_value & (CpuModule_BIT6 ^ 0xffff);
 		ccr_value = ccr_value & (CpuModule_BIT5 ^ 0xffff);
 	}
@@ -814,25 +813,25 @@ TINT	CpuModule::cmprr(TW16U reg1,TW16U reg2){
 TINT	CpuModule::cmpr(TW16U reg){
 	TW32U value1,ccr_value;
 
-	//ƒŒƒWƒXƒ^‚Ì’lA‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤Aã‚’å–å¾—ã™ã‚‹
 	GetReg(reg,value1);
 
-	//ccrƒŒƒWƒXƒ^‚Ì’l‚ğæ“¾‚·‚é
+	//ccrãƒ¬ã‚¸ã‚¹ã‚¿ã®å€¤ã‚’å–å¾—ã™ã‚‹
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
-	//’l‚Í‚O‚©@y = 1	n = 0
+	//å€¤ã¯ï¼ã‹ã€€y = 1	n = 0
 	if(value1 == 0){
 		ccr_value = ccr_value | CpuModule_BIT1;
 	} else{
 		ccr_value = ccr_value & (CpuModule_BIT1 ^ 0xffff);
 	}
-	//’l‚Íƒ}ƒCƒiƒX‚©@y = 1		n = 0
+	//å€¤ã¯ãƒã‚¤ãƒŠã‚¹ã‹ã€€y = 1		n = 0
 	if(value1 < 0){
 		ccr_value = ccr_value | CpuModule_BIT2;
 	} else {
 		ccr_value = ccr_value & (CpuModule_BIT2 ^ 0xffff);
 	}
-	//’l‚ÍŠï”@or ‹ô”	  Šï = 1@‹ô = 0
+	//å€¤ã¯å¥‡æ•°ã€€or å¶æ•°	  å¥‡ = 1ã€€å¶ = 0
 	if(value1%2){
 		ccr_value = ccr_value | CpuModule_BIT3;
 	} else {
@@ -849,7 +848,7 @@ TINT	CpuModule::slarm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//’l‚ğˆø”•ª¶ƒVƒtƒg‚·‚é
+	//å€¤ã‚’å¼•æ•°åˆ†å·¦ã‚·ãƒ•ãƒˆã™ã‚‹
 	reg_value <<= value;
 
 	SetReg(reg,reg_value);
@@ -862,7 +861,7 @@ TINT	CpuModule::slarr(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//’l‚ğˆø”’l‰EƒVƒtƒg‚·‚é
+	//å€¤ã‚’å¼•æ•°å€¤å³ã‚·ãƒ•ãƒˆã™ã‚‹
 	reg_value >>= value;
 
 	SetReg(reg,reg_value);
@@ -875,7 +874,7 @@ TINT	CpuModule::andrm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//’l‚Æˆø”’l‚ÌÏ‚ğ‚Æ‚é
+	//å€¤ã¨å¼•æ•°å€¤ã®ç©ã‚’ã¨ã‚‹
 	reg_value = reg_value & value;
 
 	SetReg(reg,reg_value);
@@ -890,7 +889,7 @@ TINT	CpuModule::andrr(TW16U reg1,TW16U reg2){
 
 	GetReg(reg2,value2);
 
-	//reg1‚Æreg2‚ÌÏ‚ğ‚Æ‚é
+	//reg1ã¨reg2ã®ç©ã‚’ã¨ã‚‹
 	value1 = value1 & value2;
 
 	SetReg(reg1,value1);
@@ -903,7 +902,7 @@ TINT	CpuModule::orrm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//reg‚Æˆø”’l‚Ì˜a‚ğ‚Æ‚é
+	//regã¨å¼•æ•°å€¤ã®å’Œã‚’ã¨ã‚‹
 	reg_value = reg_value | value;
 
 	SetReg(reg,reg_value);
@@ -918,7 +917,7 @@ TINT	CpuModule::orrr(TW16U reg1,TW16U reg2)	{
 
 	GetReg(reg2,value2);
 
-	//reg1‚Æreg2‚Ì˜a‚ğ‚Æ‚é
+	//reg1ã¨reg2ã®å’Œã‚’ã¨ã‚‹
 	value1 = value1 | value2;
 
 	SetReg(reg1,value1);
@@ -931,7 +930,7 @@ TINT	CpuModule::xorrm(TW16U reg,TW16U value){
 
 	GetReg(reg,reg_value);
 
-	//reg‚Æˆø”’l‚Ì”r‘¼‚ğ‚Æ‚é
+	//regã¨å¼•æ•°å€¤ã®æ’ä»–ã‚’ã¨ã‚‹
 	reg_value = reg_value ^ value;
 
 	SetReg(reg,reg_value);
@@ -946,7 +945,7 @@ TINT	CpuModule::xorrr(TW16U reg1,TW16U reg2){
 
 	GetReg(reg2,value2);
 
-	//reg1‚Æreg2‚Ì”r‘¼‚ğ‚Æ‚é
+	//reg1ã¨reg2ã®æ’ä»–ã‚’ã¨ã‚‹
 	value1 = value1 ^ value2;
 
 	SetReg(reg1,value1);
@@ -957,7 +956,7 @@ TINT	CpuModule::xorrr(TW16U reg1,TW16U reg2){
 TINT	CpuModule::movrmo(TW16U reg1,TW16U value,TW16U of){
 	TW32U value1,valid;
 
-	//ˆø”’l‚Ìƒƒ‚ƒŠ’l‚ğæ“¾‚·‚é
+	//å¼•æ•°å€¤ã®ãƒ¡ãƒ¢ãƒªå€¤ã‚’å–å¾—ã™ã‚‹
 	GetMem((value+of),value1,valid);
 
 	SetReg(reg1,value1);
@@ -970,7 +969,7 @@ TINT	CpuModule::movrro(TW16U reg1,TW16U reg2,TW16U of){
 
 	GetReg(reg2,reg2_value);
 
-	//ƒŒƒWƒXƒ^’l‚Æˆø”’l‚ğ‘«‚µ‚½ƒƒ‚ƒŠ’l‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿å€¤ã¨å¼•æ•°å€¤ã‚’è¶³ã—ãŸãƒ¡ãƒ¢ãƒªå€¤ã‚’å–å¾—ã™ã‚‹
 	GetMem((reg2_value+of),value1,valid);
 
 	SetReg(reg1,value1);
@@ -981,10 +980,10 @@ TINT	CpuModule::movrro(TW16U reg1,TW16U reg2,TW16U of){
 TINT	CpuModule::movrr(TW16U reg1,TW16U reg2){
 	TW32U reg1_value,reg2_value;
 
-	//ƒƒ‚ƒŠƒAƒhƒŒƒX’l‚Ìæ“¾
+	//ãƒ¡ãƒ¢ãƒªã‚¢ãƒ‰ãƒ¬ã‚¹å€¤ã®å–å¾—
 	GetReg(reg1,reg1_value);
 
-	//Ši”[’l‚Ìæ“¾
+	//æ ¼ç´å€¤ã®å–å¾—
 	GetReg(reg2,reg2_value);
 
 	SetMem(reg1_value,reg2_value);
@@ -994,7 +993,7 @@ TINT	CpuModule::movrr(TW16U reg1,TW16U reg2){
 //mov reg mem
 TINT	CpuModule::movrm(TW16U reg1,TW16U value){
 
-	//ƒŒƒWƒXƒ^‚Éˆø”’l‚ğŠi”[‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã«å¼•æ•°å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetReg(reg1,value);
 
 	return D_ERR_OK;
@@ -1003,10 +1002,10 @@ TINT	CpuModule::movrm(TW16U reg1,TW16U value){
 TINT	CpuModule::movpm(TW16U reg1,TW16U reg2){
 	TW32U reg2_value;
 
-	//Ši”[’l‚Ìæ“¾
+	//æ ¼ç´å€¤ã®å–å¾—
 	GetReg(reg2,reg2_value);
 
-	//PC‚Éˆø”’l‚ğŠi”[‚·‚é
+	//PCã«å¼•æ•°å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetReg(reg1,reg2_value);
 	
 	return D_ERR_OK;
@@ -1014,7 +1013,7 @@ TINT	CpuModule::movpm(TW16U reg1,TW16U reg2){
 //mev sp mem
 TINT	CpuModule::movsm(TW16U value){
 
-	//SP‚Éˆø”’l‚ğŠi”[‚·‚é
+	//SPã«å¼•æ•°å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_SP_ADDR,value);
 
 	return D_ERR_OK;
@@ -1022,7 +1021,7 @@ TINT	CpuModule::movsm(TW16U value){
 //mov ccr mem
 TINT	CpuModule::movcm(TW16U value){
 
-	//CCR‚Éˆø”’l‚ğŠi”[‚·‚é
+	//CCRã«å¼•æ•°å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_CCR_ADDR,value);
 
 	return D_ERR_OK;
@@ -1031,16 +1030,16 @@ TINT	CpuModule::movcm(TW16U value){
 TINT	CpuModule::pushr(TW16U reg){
 	TW32U sp_value,value1;
 
-	//SP‚©‚çƒAƒhƒŒƒX‚ğæ“¾‚·‚é
+	//SPã‹ã‚‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—ã™ã‚‹
 	GetReg(CpuModule_SP_ADDR,sp_value);
 
-	//ƒŒƒWƒXƒ^‚©‚ç’l‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã‹ã‚‰å€¤ã‚’å–å¾—ã™ã‚‹
 	GetReg(reg,value1);
 
-	//ƒAƒhƒŒƒXæ‚É’l‚ğŠi”[‚·‚é
+	//ã‚¢ãƒ‰ãƒ¬ã‚¹å…ˆã«å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetMem(sp_value,value1);
 
-	//SP’l‚ğXV‚·‚é
+	//SPå€¤ã‚’æ›´æ–°ã™ã‚‹
 	SetReg(CpuModule_SP_ADDR,++sp_value);
 	return D_ERR_OK;
 }
@@ -1048,19 +1047,19 @@ TINT	CpuModule::pushr(TW16U reg){
 TINT	CpuModule::popr(TW16U reg){
 	TW32U sp_value,value1,valid;
 
-	//SP‚©‚çƒAƒhƒŒƒX‚ğæ“¾‚·‚é
+	//SPã‹ã‚‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—ã™ã‚‹
 	GetReg(CpuModule_SP_ADDR,sp_value);
 
-	//ˆê‚Â‘O‚ÌƒAƒhƒŒƒX‚É‚·‚é
+	//ä¸€ã¤å‰ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã«ã™ã‚‹
 	sp_value--;
 
-	//ƒAƒhƒŒƒXæ‚Ì’l‚ğæ“¾‚·‚é
+	//ã‚¢ãƒ‰ãƒ¬ã‚¹å…ˆã®å€¤ã‚’å–å¾—ã™ã‚‹
 	GetMem(sp_value,value1,valid);
 
-	//ƒŒƒWƒXƒ^‚É’l‚ğŠi”[‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿ã«å€¤ã‚’æ ¼ç´ã™ã‚‹
 	SetReg(reg,value1);
 
-	//SP‚Ì’l‚ğXV‚·‚é
+	//SPã®å€¤ã‚’æ›´æ–°ã™ã‚‹
 	SetReg(CpuModule_SP_ADDR,sp_value);
 	return D_ERR_OK;
 }
@@ -1122,7 +1121,7 @@ TINT	CpuModule::rstrb(TW16U reg,TW16U value){
 }
 //br mem
 TINT	CpuModule::brm(TW16U addr){
-	//ˆø”’l‚ğPC‚ÖŠi”[‚·‚é
+	//å¼•æ•°å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_PC_ADDR,addr);
 	return D_ERR_OK;
 }
@@ -1132,7 +1131,7 @@ TINT	CpuModule::brro(TW16U reg,TW16U of){
 
 	GetReg(reg,reg_value);
 
-	//ƒŒƒWƒXƒ^’l‚Æ’l‚ğ‘«‚µ‚ÄPC‚ÖŠi”[‚·‚é
+	//ãƒ¬ã‚¸ã‚¹ã‚¿å€¤ã¨å€¤ã‚’è¶³ã—ã¦PCã¸æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_PC_ADDR,reg_value+of);
 	return D_ERR_OK;
 }
@@ -1142,7 +1141,7 @@ TINT	CpuModule::brzm(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
-	//CCR‚Ì1bit–Ú‚ª1‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®1bitç›®ãŒ1ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT1) == CpuModule_BIT1){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1155,7 +1154,7 @@ TINT	CpuModule::brnzm(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 	
-	//CCR‚Ì1bit–Ú‚ª0‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®1bitç›®ãŒ0ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT1) == 0){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1168,7 +1167,7 @@ TINT	CpuModule::brgt(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
-	//CCR‚Ì5bit–Ú‚ª1‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®5bitç›®ãŒ1ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT5) == CpuModule_BIT5){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1181,7 +1180,7 @@ TINT	CpuModule::brlt(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 	
-	//CCR‚Ì5bit–Ú‚ª0‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®5bitç›®ãŒ0ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT5) == 0){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1194,7 +1193,7 @@ TINT	CpuModule::breq(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 
-	//CCR‚Ì6bit–Ú‚ª1‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®6bitç›®ãŒ1ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT6) == CpuModule_BIT6){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1207,7 +1206,7 @@ TINT	CpuModule::brneq(TW16U addr){
 
 	GetReg(CpuModule_CCR_ADDR,ccr_value);
 	
-	//CCR‚Ì6bit–Ú‚ª0‚¾‚Á‚½‚çA’l‚ğPC‚ÖŠi”[‚·‚é
+	//CCRã®6bitç›®ãŒ0ã ã£ãŸã‚‰ã€å€¤ã‚’PCã¸æ ¼ç´ã™ã‚‹
 	if((ccr_value & CpuModule_BIT6) == 0){
 		SetReg(CpuModule_PC_ADDR,addr);
 	}
@@ -1217,10 +1216,10 @@ TINT	CpuModule::brneq(TW16U addr){
 //call mem
 TINT	CpuModule::callm(TW16U addr){
 
-	//Œ»İ‚ÌPC“à‚Ì’l‚ğƒXƒ^ƒbƒN‚É‘Ş”ğ
+	//ç¾åœ¨ã®PCå†…ã®å€¤ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«é€€é¿
 	pushr(CpuModule_PC_ADDR);
 
-	//ƒAƒhƒŒƒX‚ğPC‚ÉŠi”[‚·‚é
+	//ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’PCã«æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_PC_ADDR,addr);
 
 	return D_ERR_OK;
@@ -1229,13 +1228,13 @@ TINT	CpuModule::callm(TW16U addr){
 TINT	CpuModule::callr(TW16U reg){
 	TW32U reg_value;
 
-	//PC“à‚Ì’l‚ğƒXƒ^ƒbƒN‚É‘Ş”ğ
+	//PCå†…ã®å€¤ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«é€€é¿
 	pushr(CpuModule_PC_ADDR);
 
-	//ƒŒƒWƒXƒ^’l‚ğæ“¾
+	//ãƒ¬ã‚¸ã‚¹ã‚¿å€¤ã‚’å–å¾—
 	GetReg(reg,reg_value);
 
-	//ƒAƒhƒŒƒX‚ğPC‚ÉŠi”[‚·‚é
+	//ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’PCã«æ ¼ç´ã™ã‚‹
 	SetReg(CpuModule_PC_ADDR,reg_value);
 
 	return D_ERR_OK;
@@ -1246,7 +1245,7 @@ TINT	CpuModule::ret(TVOID){
 	return D_ERR_OK;
 }
 
-// Š„‚İ(EI/DI)
+// å‰²è¾¼ã¿(EI/DI)
 TINT	CpuModule::ei(TVOID)
 {
 	// Critical Section Start
@@ -1271,7 +1270,7 @@ TINT	CpuModule::di(TVOID)
 	return D_ERR_OK;
 }
 
-// ƒ\ƒtƒgƒEƒFƒAŠ„‚İ
+// ã‚½ãƒ•ãƒˆã‚¦ã‚§ã‚¢å‰²è¾¼ã¿
 TINT	CpuModule::swi(TVOID)
 {
 	TW32U	val;
@@ -1281,7 +1280,7 @@ TINT	CpuModule::swi(TVOID)
 	return D_ERR_OK;
 }
 
-//reti(Š„‚İ•œ‹A)
+//reti(å‰²è¾¼ã¿å¾©å¸°)
 TINT	CpuModule::reti(TVOID){
 	popr(CpuModule_PC_ADDR);
 	return D_ERR_OK;

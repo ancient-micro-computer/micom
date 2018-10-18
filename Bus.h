@@ -1,60 +1,62 @@
 #pragma once
 
+#include <mutex>
 #include "define.h"
 #include "simulator.h"
 #include "typedef.h"
-#include "windows.h"
-#define D_MAX_MODULES	32	// Å‘å32ƒ‚ƒWƒ…[ƒ‹‚Ü‚ÅÚ‘±‰Â”\‚Æ‚·‚é
+#include "macro.h"
+
+#define D_MAX_MODULES	32	// æœ€å¤§32ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã¾ã§æ¥ç¶šå¯èƒ½ã¨ã™ã‚‹
 
 namespace Simulator {
-class Block;
+	class Block;
 
-public class Bus
-{
-	struct st_MODULE_INFO
+	class Bus
 	{
-		int module_id;		// ƒ‚ƒWƒ…[ƒ‹ID
-		int addr_assign;	// 0:ƒAƒhƒŒƒXŠ„“–‚Ä–³‚µ 1:ƒAƒhƒŒƒXŠ„“–‚Ä—L‚è
-		unsigned long start_address;
-		unsigned long end_address;
-		Block *p_module;
+		struct st_MODULE_INFO
+		{
+			int module_id;		// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ID
+			int addr_assign;	// 0:ã‚¢ãƒ‰ãƒ¬ã‚¹å‰²å½“ã¦ç„¡ã— 1:ã‚¢ãƒ‰ãƒ¬ã‚¹å‰²å½“ã¦æœ‰ã‚Š
+			unsigned long start_address;
+			unsigned long end_address;
+			Block *p_module;
+		};
+
+	public:
+		Bus();
+		~Bus();
+
+		int connect(int module_id, int addr_assign, unsigned long start_address, unsigned long end_address, Block *p_module);
+
+	    int Reset(TVOID);                                   // ãƒ–ãƒ­ãƒƒã‚¯ãƒªã‚»ãƒƒãƒˆ
+	    int Exec();											// ãƒ–ãƒ­ãƒƒã‚¯æ©Ÿèƒ½ã®å®Ÿè¡Œé–¢æ•°
+		int Exec(int module_id);							// ç‰¹å®šãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®èµ·å‹•
+	    int Status(TVOID);                                  // ãƒ–ãƒ­ãƒƒã‚¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å–å¾—
+
+		int GetStatus(int);
+
+		int set_reg(int id, TINT addr, TW32U &value);
+		int get_reg(int id, TINT addr, TW32U &value);
+
+		int set_address(unsigned long address);
+		int set_data(unsigned long data);
+		unsigned long get_address(void);
+		unsigned long get_data(void);
+		int access_read(void);
+		int access_write(void);
+		int lock();		// ãƒã‚¹ã‚¢ã‚¯ã‚»ã‚¹å‰
+		int unlock();		// ãƒã‚¹ã‚¢ã‚¯ã‚»ã‚¹å®Œäº†å¾Œ
+
+		int InterruptRequest(int src_module_id, int dst_module_id, TW32U &value);	// å‰²è¾¼ã¿é€šçŸ¥
+
+	private:
+		std::mutex   m_hBusMutex;
+		std::mutex   m_hBusMutexSub;
+		bool	 m_locking;	// true=ãƒã‚¹ãƒ­ãƒƒã‚¯ä¸­
+		unsigned long m_address;
+		unsigned long m_data;
+		int  m_modules;
+		struct st_MODULE_INFO m_moduleinfo[D_MAX_MODULES];
 	};
 
-public:
-	Bus();
-	~Bus();
-
-	int connect(int module_id, int addr_assign, unsigned long start_address, unsigned long end_address, Block *p_module);
-
-    int Reset(TVOID);                                   // ƒuƒƒbƒNƒŠƒZƒbƒg
-    int Exec();											// ƒuƒƒbƒN‹@”\‚ÌÀsŠÖ”
-	int Exec(int module_id);							// “Á’èƒ‚ƒWƒ…[ƒ‹‚Ì‹N“®
-    int Status(TVOID);                                  // ƒuƒƒbƒNƒXƒe[ƒ^ƒXæ“¾
-
-	int GetStatus(int);
-
-	int set_reg(int id, TINT addr, TW32U &value);
-	int get_reg(int id, TINT addr, TW32U &value);
-
-	int set_address(unsigned long address);
-	int set_data(unsigned long data);
-	unsigned long get_address(void);
-	unsigned long get_data(void);
-	int access_read(void);
-	int access_write(void);
-	int lock();		// ƒoƒXƒAƒNƒZƒX‘O
-	int unlock();		// ƒoƒXƒAƒNƒZƒXŠ®—¹Œã
-
-	int InterruptRequest(int src_module_id, int dst_module_id, TW32U &value);	// Š„‚İ’Ê’m
-
-private:
-	HANDLE   m_hBusMutex;
-	HANDLE   m_hBusMutexSub;
-	bool	 m_locking;	// true=ƒoƒXƒƒbƒN’†
-	unsigned long m_address;
-	unsigned long m_data;
-	int  m_modules;
-	struct st_MODULE_INFO m_moduleinfo[D_MAX_MODULES];
-};
-
-};
+}

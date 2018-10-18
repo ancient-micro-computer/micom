@@ -1,10 +1,10 @@
 #include "Bus.h"
 #include "Block.h"
-#include "macro.h"
 #include <iostream>
+#include <cstring>
 
 /*============================================================================*
- * ƒ[ƒJƒ‹QÆ
+ * ãƒ­ãƒ¼ã‚«ãƒ«å‚ç…§
  *============================================================================*/
 using namespace Simulator;
 
@@ -16,19 +16,15 @@ Bus::Bus()
 	m_address = 0x0;
 	m_data    = 0x0;
 
-	// ƒoƒXƒƒbƒN—pMutex
-	m_hBusMutex = CreateMutex(NULL, FALSE, NULL);
-	m_hBusMutexSub = CreateMutex(NULL, FALSE, NULL);
+	// ãƒã‚¹ãƒ­ãƒƒã‚¯ç”¨Mutex
 	m_locking = false;
 }
 
 Bus::~Bus()
 {
-	CloseHandle(m_hBusMutex);
-	CloseHandle(m_hBusMutexSub);
 }
 
-// ƒCƒ“ƒ^[ƒtƒF[ƒXŠÖ”
+// ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹é–¢æ•°
 int Bus::set_address(unsigned long address)
 {
 	m_address = address;
@@ -51,21 +47,21 @@ unsigned long Bus::get_data(void)
 	return m_data;
 }
 
-// ƒoƒXƒƒbƒNMutex
-int Bus::lock()			// ƒoƒXƒAƒNƒZƒX‘O
+// ãƒã‚¹ãƒ­ãƒƒã‚¯Mutex
+int Bus::lock()			// ãƒã‚¹ã‚¢ã‚¯ã‚»ã‚¹å‰
 {
 	WaitForSingleObject( m_hBusMutex, INFINITE );
 	return D_OK;
 }
 
-int Bus::unlock()		// ƒoƒXƒAƒNƒZƒXŠ®—¹Œã
+int Bus::unlock()		// ãƒã‚¹ã‚¢ã‚¯ã‚»ã‚¹å®Œäº†å¾Œ
 {
 	ReleaseMutex(m_hBusMutex);
 	return D_OK;
 }
 
 
-// ƒ‚ƒWƒ…[ƒ‹Ú‘±
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æ¥ç¶š
 int Bus::connect(int module_id, int addr_assign, unsigned long start_address, unsigned long end_address, Block *p_module)
 {
 	m_moduleinfo[m_modules].module_id = module_id;
@@ -80,7 +76,7 @@ int Bus::connect(int module_id, int addr_assign, unsigned long start_address, un
 	return D_OK;
 }
 
-// ƒNƒƒbƒN‹Ÿ‹‹iŠeƒ‚ƒWƒ…[ƒ‹‚ÌReset/Exec/StatusŠÖ”‚ğŒÄ‚Ño‚·j
+// ã‚¯ãƒ­ãƒƒã‚¯ä¾›çµ¦ï¼ˆå„ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®Reset/Exec/Statusé–¢æ•°ã‚’å‘¼ã³å‡ºã™ï¼‰
 int Bus::Reset()
 {
 	int i;
@@ -167,7 +163,7 @@ int Bus::get_reg(int module_id, TINT addr, TW32U &value)
 	return ret;
 }
 
-// ReadƒAƒNƒZƒX
+// Readã‚¢ã‚¯ã‚»ã‚¹
 int Bus::access_read(void)
 {
 	int i;
@@ -181,9 +177,9 @@ int Bus::access_read(void)
 
 	for(flg = 0, i = 0; i < m_modules; i++)
 	{
-		if (m_moduleinfo[i].addr_assign == 1 &&				// ƒAƒhƒŒƒXŠ„‚è“–‚Ä‚ª‚È‚³‚ê‚Ä‚Ä
-			address >= m_moduleinfo[i].start_address &&		// ŠJnƒAƒhƒŒƒX‚Æ
-			address <= m_moduleinfo[i].end_address)			// I—¹ƒAƒhƒŒƒX‚Ì”ÍˆÍ“à‚Å‚ ‚ê‚Î
+		if (m_moduleinfo[i].addr_assign == 1 &&				// ã‚¢ãƒ‰ãƒ¬ã‚¹å‰²ã‚Šå½“ã¦ãŒãªã•ã‚Œã¦ã¦
+			address >= m_moduleinfo[i].start_address &&		// é–‹å§‹ã‚¢ãƒ‰ãƒ¬ã‚¹ã¨
+			address <= m_moduleinfo[i].end_address)			// çµ‚äº†ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ç¯„å›²å†…ã§ã‚ã‚Œã°
 		{
 			m_moduleinfo[i].p_module->GetMem(address - m_moduleinfo[i].start_address, data, valid);
 			set_data(data);
@@ -199,7 +195,7 @@ int Bus::access_read(void)
 	}
 }
 
-// WriteƒAƒNƒZƒX
+// Writeã‚¢ã‚¯ã‚»ã‚¹
 int Bus::access_write(void)
 {
 	int i;
@@ -227,7 +223,7 @@ int Bus::access_write(void)
 	}
 }
 
-// Š„‚İ’Ê’m
+// å‰²è¾¼ã¿é€šçŸ¥
 int Bus::InterruptRequest(int src_module_id, int dst_module_id, TW32U &param)
 {
 	int ret = D_NG;
