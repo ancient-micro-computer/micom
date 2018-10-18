@@ -2,7 +2,8 @@
 
 # how to build
 $ make clean
+
 $ make
 
 # how to run
-$ vcpu
+$ vcpu <assembled file>
