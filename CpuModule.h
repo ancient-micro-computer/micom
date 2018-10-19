@@ -3,7 +3,7 @@
 
 #include "typedef.h"
 #include "Block.h"
-#include <process.h>
+//#include <process.h>
 
 //CpuModuleレジスタ開始アドレス
 #define CpuModule_BASE_ADDR		0x80
