@@ -117,7 +117,7 @@ mov r0, 9
 LOOP_START:
 何か処理
 dec r0	# 演算結果がCCRに格納される（べきだけど仮想CPUにその実装が抜けている...）
-brnz LOOP_START
+brnz LOOP_START # decの結果が0でなければ(non zero)LOOP_STARTに飛ぶ
 
 ```
 
