@@ -133,7 +133,7 @@ INT_TMR_SUB:
 	DI            // 何はともあれ割込み禁止。2重に割り込みが入るのを防ぐ
 	push	r1      // RETI(return from interrupt)処理中に値の変化が発生するレジスタを保存する。
 	push	r2
-	push	ccr     // 割り込み処理中にCCRが変化する場合、CCRも含めないと処理中だったif文の処理がおかしくなる
+	push	ccr     // 割り込み処理中にCCRが変化する場合、CCRも含めないと分岐直前まで処理中だったif文等の処理がおかしくなる
 	何かしらの処理...
 	pop		ccr
 	pop		r2
