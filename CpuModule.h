@@ -182,6 +182,10 @@ namespace Simulator {
 		TINT	addrr(TW16U reg1,TW16U reg2);
 		TINT	subrm(TW16U reg,TW16U value);
 		TINT	subrr(TW16U reg1,TW16U reg2);
+		TINT	mulrm(TW16U reg,TW16U value);
+		TINT	mulrr(TW16U reg1,TW16U reg2);
+		TINT	divrm(TW16U reg,TW16U value);
+		TINT	divrr(TW16U reg1,TW16U reg2);
 		TINT	incr(TW16U reg1);
 		TINT	decr(TW16U reg1);
 		TINT	cmprm(TW16U reg,TW16U value);

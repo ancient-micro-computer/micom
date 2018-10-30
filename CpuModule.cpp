@@ -525,7 +525,19 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 			break;
 		case SUB_R_R_OC:
 			subrr(addr1,addr2);
-			break;			
+			break;
+		case MUL_R_M_OC:
+			mulrm(addr1,addr2);
+			break;
+		case MUL_R_R_OC:
+			mulrr(addr1,addr2);
+			break;
+		case DIV_R_M_OC:
+			divrm(addr1,addr2);
+			break;
+		case DIV_R_R_OC:
+			divrr(addr1,addr2);
+			break;
 		case INC_R_OC:
 			incr(addr1);
 			break;
@@ -735,6 +747,78 @@ TINT	CpuModule::subrr(TW16U reg1,TW16U reg2){
 	SetReg(reg1,value1-value2);
 	return D_ERR_OK;
 }
+
+//mul reg mem
+TINT	CpuModule::mulrm(TW16U reg,TW16U value){
+	TW32U reg_value;
+
+	GetReg(reg,reg_value);
+
+	//reg*valueをレジスタに格納する
+	SetReg(reg,reg_value*value);
+
+	return D_ERR_OK;
+}
+//mul reg reg
+TINT	CpuModule::mulrr(TW16U reg1,TW16U reg2){
+	TW32U value1,value2;
+
+	//値Aを取り出す
+	GetReg(reg1,value1);
+
+	//値Bを取り出す
+	GetReg(reg2,value2);
+
+	//A*Bをレジスタに格納する
+	SetReg(reg1,value1*value2);
+	return D_ERR_OK;
+}
+
+//div reg mem
+TINT	CpuModule::divrm(TW16U reg,TW16U value){
+	TW32U reg_value;
+
+	GetReg(reg,reg_value);
+
+	if (value == 0) {
+		// 0除算時はCCR.bit4=1とする
+		TW32U ccr_value;
+		GetReg(CpuModule_CCR_ADDR,ccr_value);
+		ccr_value = ccr_value | CpuModule_BIT4;
+		SetReg(CpuModule_CCR_ADDR,ccr_value);
+		return D_ERR_OK;
+	}
+
+	//reg/valueをレジスタに格納する
+	SetReg(reg,reg_value/value);
+
+	return D_ERR_OK;
+}
+//div reg reg
+TINT	CpuModule::divrr(TW16U reg1,TW16U reg2){
+	TW32U value1,value2;
+
+	//値Aを取り出す
+	GetReg(reg1,value1);
+
+	//値Bを取り出す
+	GetReg(reg2,value2);
+
+	if (value2 == 0) {
+		// 0除算時はCCR.bit4=1とする
+		TW32U ccr_value;
+		GetReg(CpuModule_CCR_ADDR,ccr_value);
+		ccr_value = ccr_value | CpuModule_BIT4;
+		SetReg(CpuModule_CCR_ADDR,ccr_value);
+		return D_ERR_OK;
+	}
+
+	//A/Bをレジスタに格納する
+	SetReg(reg1,value1/value2);
+	return D_ERR_OK;
+}
+
+
 //inc reg
 TINT	CpuModule::incr(TW16U reg1){
 	TW32U value1;

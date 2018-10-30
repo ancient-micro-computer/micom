@@ -80,6 +80,19 @@ int main(int argc, char** argv) {
 		std::this_thread::sleep_for( interval_wait );
 	}
 
+	{
+		// displayの代わり
+		TW32U r0, r1;
+		m_Bus->get_reg(D_MODULEID_CPU, 0, r0);	// r0
+		printf("r0:%lx\n", r0);
+		m_Bus->get_reg(D_MODULEID_CPU, 1, r1);	// r1
+		printf("r1:%lx\n", r1);
+
+		m_Bus->set_address(r1);
+		m_Bus->access_read();
+		printf("$%lx:%lx\n", r1, m_Bus->get_data());	// $2000番地の値
+	}
+
 	stop();
 
 	// スレッド強制停止
