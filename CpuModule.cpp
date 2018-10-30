@@ -671,7 +671,8 @@ TINT	CpuModule::exe(TINT value,TW16U addr1,TW16U addr2,TW16U addr3)
 
 		/*実行メソッドを随時追加していく*/
 		default :
-			halt();		// Unknown mnemonic. Force halt cpu.
+			printf("Unknown mnemonic. Force halt cpu. opcode:%02x\n", value);
+			halt();
 			break;
 	}
 	return D_ERR_OK;
