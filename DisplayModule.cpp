@@ -28,9 +28,10 @@ TINT DisplayModule::Exec()
     printf("r1:%lx\n", r1);
 
     // TODO
-    m_ParentBus->set_address(r1);
+    // read a value of address $0200
+    m_ParentBus->set_address(ADDRESS_DISPLAY);
     m_ParentBus->access_read();
-    printf("$%lx:%lx\n", r1, m_ParentBus->get_data());	// a value of address $2000
+    printf("$%lx:%lx\n", r1, m_ParentBus->get_data());
 
     return D_ERR_OK;
 }
