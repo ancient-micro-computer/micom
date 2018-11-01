@@ -6,7 +6,8 @@
 
 namespace Simulator {
 
-#define ADDRESS_DISPLAY 0x200
+#define DISPLAY_STARTADDR   0x200
+#define DISPLAY_ENDADDR     0xfff
 
 class DisplayModule : public Block
 {
