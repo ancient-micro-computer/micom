@@ -11,6 +11,7 @@
 #include "lib.h"
 
 /* 完全な状態ではありません！ */
+using namespace std;
 using namespace Simulator;
 
 // global variables
@@ -72,14 +73,11 @@ int main(int argc, char** argv) {
 	std::thread m_thBus(Run1Cycle);
 	std::thread m_thGTmr(RunGTimer);
 
-	start();
-
-	{
+/*	{
 		// 3000msecだけCPUを駆動させるデモ的挙動
 		std::chrono::milliseconds interval_wait( 3000 );
 		std::this_thread::sleep_for( interval_wait );
 	}
-
 	{
 		// displayの代わり
 		TW32U r0, r1;
@@ -92,13 +90,29 @@ int main(int argc, char** argv) {
 		m_Bus->access_read();
 		printf("$%lx:%lx\n", r1, m_Bus->get_data());	// $2000番地の値
 	}
+*/
+    // CUI
+    while(true) {
+        char command[64];
+        cout << "start/stop/reset/exit? > ";
+        cin >> command;
+        if (strcmp(command, "start") == 0) {
+            start();
+        } else if (strcmp(command, "stop") == 0) {
+            stop();
+        } else if (strcmp(command, "reset") == 0) {
+            reset();
+        } else if (strcmp(command, "exit") == 0) {
+            stop();
+            break;
+        }
+    }
 
-	stop();
+    stop();
+    // スレッド強制停止
+    stopThread(&m_thBus, &m_thGTmr);
+    deinit();
 
-	// スレッド強制停止
-	stopThread(&m_thBus, &m_thGTmr);
-
-	deinit();
 	return 0;
 }
 
