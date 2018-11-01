@@ -92,7 +92,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    stop();
     // スレッド強制停止
     stopThread(&m_thBus, &m_thGTmr);
     deinit();
