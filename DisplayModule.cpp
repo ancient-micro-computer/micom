@@ -20,47 +20,51 @@ DisplayModule::~DisplayModule()
 
 TINT DisplayModule::Exec()
 {
-    // TODO
     TW32U r0, r1;
-    m_ParentBus->get_reg(D_MODULEID_CPU, 0, r0);	// r0
+
+    GetReg(0, r0);
     printf("r0:%lx\n", r0);
-    m_ParentBus->get_reg(D_MODULEID_CPU, 1, r1);	// r1
+
+    GetReg(1, r1);
     printf("r1:%lx\n", r1);
 
-    // TODO
-    // read a value of address $0200
-    m_ParentBus->set_address(ADDRESS_DISPLAY);
-    m_ParentBus->access_read();
-    printf("$%lx:%lx\n", r1, m_ParentBus->get_data());
+    // Read a value from $0200
+    TW32U v, ignore;
+    GetMem(ADDRESS_DISPLAY, v, ignore);
+    printf("$%lx:%lx\n", ADDRESS_DISPLAY, v);
 
     return D_ERR_OK;
 }
 
 TINT   DisplayModule::GetReg(TINT addr, TW32U &value)
 {
-    // TODO
+    m_ParentBus->get_reg(D_MODULEID_CPU, addr, value);
     return D_ERR_OK;
 }
 
 TINT    DisplayModule::SetReg(TINT addr, TW32U value)
 {
-    // TODO
+    // Do nothing
     return D_ERR_OK;
 }
 
 TINT   DisplayModule::GetMem(TW32U addr, TW32U &value, TW32U &valid)
 {
-    // TODO
+    m_ParentBus->set_address(addr);
+    m_ParentBus->access_read();
+    value = m_ParentBus->get_data();
+
     return D_ERR_OK;
 }
 
 TINT    DisplayModule::SetMem(TW32U addr, TW32U value)
 {
-    // TODO
+    // Do nothing
 	return D_ERR_OK;
 }
 
 TW32U*	DisplayModule::MemPtr(TW32U addr)
 {
+    // Do nothing
 	return NULL;
 }

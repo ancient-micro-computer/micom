@@ -6,7 +6,7 @@
 
 namespace Simulator {
 
-#define ADDRESS_DISPLAY 0x200
+#define ADDRESS_DISPLAY (unsigned long)0x200
 
 class DisplayModule : public Block
 {
