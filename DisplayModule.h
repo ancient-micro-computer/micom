@@ -13,11 +13,11 @@ public:
 	~DisplayModule();
 
     TINT    Exec();     // function for Block execution
-	TINT    GetReg(TINT addr, TW32U &value);						// Register get/set
-    TINT	SetReg(TINT addr, TW32U value);
+    TINT    GetReg(TINT addr, TW32U &value);						// Register get/set
+    TINT    SetReg(TINT addr, TW32U value);
     TINT    GetMem(TW32U addr, TW32U &value, TW32U &valid);// Memory get/set
     TINT    SetMem(TW32U addr, TW32U value);
-	TW32U*	MemPtr(TW32U addr);
+    TW32U*  MemPtr(TW32U addr);
 
 private:
 };
