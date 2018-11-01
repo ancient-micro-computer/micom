@@ -10,6 +10,7 @@
 #define D_MODULEID_GTMR		1
 #define D_MODULEID_DMA		2
 #define D_MODULEID_MEM		10
+#define D_MODULEID_DISPLAY	20
 
 // メモリマップ範囲定義
 #define D_ADRMAP_SYSTEM_START	0x0000

@@ -6,6 +6,7 @@
 #include "CpuModule.h"
 #include "MemModule.h"
 #include "TimerModule.h"
+#include "DisplayModule.h"
 #include "BreakPoint.h"
 #include "fstream"
 #include "lib.h"
@@ -19,6 +20,7 @@ Bus*		m_Bus;
 CpuModule*	m_Cpu;
 MemModule*	m_Mem;
 TimerModule*	m_GTmr;
+DisplayModule*	m_Display;
 BreakPoint* m_bp;
 bool		m_Running = false;
 bool		m_Halt = false;
@@ -75,22 +77,9 @@ int main(int argc, char** argv) {
 	start();
 
 	{
-		// 3000msecだけCPUを駆動させるデモ的挙動
-		std::chrono::milliseconds interval_wait( 3000 );
+		// 1msecだけCPUを駆動させるデモ的挙動
+		std::chrono::milliseconds interval_wait( 1 );
 		std::this_thread::sleep_for( interval_wait );
-	}
-
-	{
-		// displayの代わり
-		TW32U r0, r1;
-		m_Bus->get_reg(D_MODULEID_CPU, 0, r0);	// r0
-		printf("r0:%lx\n", r0);
-		m_Bus->get_reg(D_MODULEID_CPU, 1, r1);	// r1
-		printf("r1:%lx\n", r1);
-
-		m_Bus->set_address(r1);
-		m_Bus->access_read();
-		printf("$%lx:%lx\n", r1, m_Bus->get_data());	// $2000番地の値
 	}
 
 	stop();
@@ -115,9 +104,11 @@ void init() {
 	m_Cpu = new CpuModule;
 	m_GTmr = new TimerModule;
 	m_Mem = new MemModule [8];
+	m_Display = new DisplayModule;
 
-	m_Bus->connect(D_MODULEID_CPU,  0,    0,    0, m_Cpu);
-	m_Bus->connect(D_MODULEID_GTMR, 0,    0,    0, m_GTmr);
+	m_Bus->connect(D_MODULEID_CPU,     0, 0, 0, m_Cpu);
+	m_Bus->connect(D_MODULEID_GTMR,    0, 0, 0, m_GTmr);
+	m_Bus->connect(D_MODULEID_DISPLAY, 0, 0, 0, m_Display);
 
 	unsigned long addr = 0;
 	for(int i = 0; i < 8; i++) {
