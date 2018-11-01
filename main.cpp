@@ -117,7 +117,7 @@ void init() {
 
 	m_Bus->connect(D_MODULEID_CPU,     0, 0, 0, m_Cpu);
 	m_Bus->connect(D_MODULEID_GTMR,    0, 0, 0, m_GTmr);
-    m_Bus->connect(D_MODULEID_DISPLAY, 0, 0, 0, m_Display);
+	m_Bus->connect(D_MODULEID_DISPLAY, 0, 0, 0, m_Display);
 
 	unsigned long addr = 0;
 	for(int i = 0; i < 8; i++) {
@@ -143,12 +143,12 @@ void deinit() {
 int reset() {
 	printf("reset\n");
 	SetRunning(false);
-	 m_Bus->lock();
-	 m_Bus->Reset();
-	 m_Bus->unlock();
+	m_Bus->lock();
+	m_Bus->Reset();
+	m_Bus->unlock();
 
-	 mHealthCounter = 0;
-	 return D_OK;
+	mHealthCounter = 0;
+	return D_OK;
 }
 
 // 実行開始
@@ -181,90 +181,90 @@ void stopThread(std::thread *thBus, std::thread *thGTmr) {
 
 // 実行/停止設定
 void SetRunning(bool running) {
-	 WaitForSingleObject( m_hBusMutex, INFINITE );
+	WaitForSingleObject( m_hBusMutex, INFINITE );
 
-	 m_Running = running;
+	m_Running = running;
 
-	 ReleaseMutex(m_hBusMutex);
+	ReleaseMutex(m_hBusMutex);
 }
 
 //バス駆動
 void Run1Cycle() {
-	 bool running;
-	 bool halt;
-	 TW32U	pc;
+	bool running;
+	bool halt;
+	TW32U	pc;
 
-	 while(true) {
-		 WaitForSingleObject( m_hBusMutex, INFINITE );
-		 running = m_Running;
-		 halt = m_Halt;
-		 ReleaseMutex(m_hBusMutex);
-		 if (halt) {
-			break;
-		 }
-		 
-		 if(!running) {
-			 std::chrono::milliseconds interval_wait( 20 );
-			 std::this_thread::sleep_for( interval_wait );
-			 continue;
-		 }
+	while(true) {
+		WaitForSingleObject( m_hBusMutex, INFINITE );
+		running = m_Running;
+		halt = m_Halt;
+		ReleaseMutex(m_hBusMutex);
+		if (halt) {
+		break;
+		}
+		
+		if(!running) {
+			std::chrono::milliseconds interval_wait( 20 );
+			std::this_thread::sleep_for( interval_wait );
+			continue;
+		}
 
-		 m_Bus->get_reg(D_MODULEID_CPU, CpuModule_PC_ADDR, pc);
+		m_Bus->get_reg(D_MODULEID_CPU, CpuModule_PC_ADDR, pc);
 
-		 // HALT or BreakPoint検出→Cycle実行停止
-		 if(m_Bus->GetStatus(0) != 0 || m_bp->Check(pc)) {
-			 SetRunning(false);
-			 continue;
-		 }
+		// HALT or BreakPoint検出→Cycle実行停止
+		if(m_Bus->GetStatus(0) != 0 || m_bp->Check(pc)) {
+			SetRunning(false);
+			continue;
+		}
 
-		 // 1cycle 実行
-		 if(m_Bus->GetStatus(0) == 0) {
-			 m_Bus->Exec();
-		 }
-	 }
+		// 1cycle 実行
+		if(m_Bus->GetStatus(0) == 0) {
+			m_Bus->Exec();
+		}
+	}
 }
 
 //外部タイマ駆動
 void RunGTimer() {
-	 bool	running;
-	 bool	halt;
-	 TW32U	timer_enable = 0;
-	 TW32U	timer_interval = 0;
+	bool	running;
+	bool	halt;
+	TW32U	timer_enable = 0;
+	TW32U	timer_interval = 0;
 
-	 while(true) {
-		 WaitForSingleObject( m_hBusMutex, INFINITE );
-		 running = m_Running;
-		 halt = m_Halt;
-		 ReleaseMutex(m_hBusMutex);
-		 if (halt) {
-			break;
-		 }
+	while(true) {
+		WaitForSingleObject( m_hBusMutex, INFINITE );
+		running = m_Running;
+		halt = m_Halt;
+		ReleaseMutex(m_hBusMutex);
+		if (halt) {
+		break;
+		}
 
-		 if(!running) {
-			 std::chrono::milliseconds interval_wait( 20 );
-			 std::this_thread::sleep_for( interval_wait );
-			 continue;
-		 }
-		 
-		 m_Bus->lock();
-		 m_Bus->set_address(D_SYSTEM_GTMR_ENABLE);
-		 m_Bus->access_read();
-		 timer_enable = m_Bus->get_data();
-		 m_Bus->unlock();
+		if(!running) {
+			std::chrono::milliseconds interval_wait( 20 );
+			std::this_thread::sleep_for( interval_wait );
+			continue;
+		}
+		
+		m_Bus->lock();
+		m_Bus->set_address(D_SYSTEM_GTMR_ENABLE);
+		m_Bus->access_read();
+		timer_enable = m_Bus->get_data();
+		m_Bus->unlock();
 
-		 if(timer_enable == 0x0001) {
-			 m_Bus->lock();
-			 m_Bus->set_address(D_SYSTEM_GTMR_INTERVAL);
-			 m_Bus->access_read();
-			 timer_interval = m_Bus->get_data();
-			 m_Bus->unlock();
+		if(timer_enable == 0x0001) {
+			m_Bus->lock();
+			m_Bus->set_address(D_SYSTEM_GTMR_INTERVAL);
+			m_Bus->access_read();
+			timer_interval = m_Bus->get_data();
+			m_Bus->unlock();
 
-			 std::chrono::milliseconds interval_wait( timer_interval );
-			 std::this_thread::sleep_for( interval_wait ); // n msec wait
-			 m_Bus->Exec(D_MODULEID_GTMR);			// タイマー駆動
-		 }
-	 }
- }
+			std::chrono::milliseconds interval_wait( timer_interval );
+			std::this_thread::sleep_for( interval_wait ); // n msec wait
+			m_Bus->Exec(D_MODULEID_GTMR);			// タイマー駆動
+		}
+	}
+}
 
 
 // データロード
