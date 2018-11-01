@@ -5,6 +5,7 @@
 　機能モジュール側でもレジスタやメモリの入出力関数を定義をして下さい。
  
  *============================================================================*/
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -15,6 +16,7 @@
 #include "CpuModule.h"
 #include "Bus.h"
 
+using namespace std;
 using namespace Simulator;
 
 //変数宣言
@@ -135,7 +137,7 @@ CpuModule::~CpuModule()
 TINT    CpuModule::Reset(TVOID)
 {
 	TINT counter;
-	
+
 	//必要に応じてエンジン固有の初期化処理関数をコールして下さい
 	//レジスタ初期化
 	for(counter = 0;counter <= 15;counter++){

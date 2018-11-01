@@ -12,6 +12,7 @@
 #include "lib.h"
 
 /* 完全な状態ではありません！ */
+using namespace std;
 using namespace Simulator;
 
 // global variables
@@ -74,20 +75,28 @@ int main(int argc, char** argv) {
 	std::thread m_thBus(Run1Cycle);
 	std::thread m_thGTmr(RunGTimer);
 
-	start();
+    // CUI
+    while(true) {
+        char command[64];
+        cout << "start/stop/reset/exit? > ";
+        cin >> command;
+        if (strcmp(command, "start") == 0) {
+            start();
+        } else if (strcmp(command, "stop") == 0) {
+            stop();
+        } else if (strcmp(command, "reset") == 0) {
+            reset();
+        } else if (strcmp(command, "exit") == 0) {
+            stop();
+            break;
+        }
+    }
 
-	{
-		// 1msecだけCPUを駆動させるデモ的挙動
-		std::chrono::milliseconds interval_wait( 1 );
-		std::this_thread::sleep_for( interval_wait );
-	}
+    stop();
+    // スレッド強制停止
+    stopThread(&m_thBus, &m_thGTmr);
+    deinit();
 
-	stop();
-
-	// スレッド強制停止
-	stopThread(&m_thBus, &m_thGTmr);
-
-	deinit();
 	return 0;
 }
 
@@ -108,7 +117,7 @@ void init() {
 
 	m_Bus->connect(D_MODULEID_CPU,     0, 0, 0, m_Cpu);
 	m_Bus->connect(D_MODULEID_GTMR,    0, 0, 0, m_GTmr);
-	m_Bus->connect(D_MODULEID_DISPLAY, 0, 0, 0, m_Display);
+    m_Bus->connect(D_MODULEID_DISPLAY, 0, 0, 0, m_Display);
 
 	unsigned long addr = 0;
 	for(int i = 0; i < 8; i++) {
