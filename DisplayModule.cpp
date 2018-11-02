@@ -58,10 +58,10 @@ TINT    DisplayModule::SetMem(TW32U addr, TW32U value)
         TW32U r0, r1;
         m_ParentBus->get_reg(D_MODULEID_CPU, 0, r0);	// r0
         printf("\n");
-        printf("r0:$%lx\n", r0);
+        printf("r0:%ld($%lx)\n", r0, r0);
         m_ParentBus->get_reg(D_MODULEID_CPU, 1, r1);	// r1
-        printf("r1:$%lx\n", r1);
-        printf("value:$%lx\n", value);
+        printf("r1:%ld($%lx)\n", r1, r1);
+        printf("value:%ld($%lx)\n", value, value);
         break;
     default:
         break;
