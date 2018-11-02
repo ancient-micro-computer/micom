@@ -2,7 +2,7 @@ CC		= g++
 CPPFLAGS	= -std=c++11 -Wall -pthread
 OBJS	= lib.o Bus.o Block.o BreakPoint.o CpuModule.o MemModule.o TimerModule.o DisplayModule.o logutil.o main.o
 DEST	= /usr/local/bin
-TARGET	= ancientmicom
+TARGET	= ancient-micom
 
 all:	$(TARGET)
 $(TARGET): $(OBJS)
